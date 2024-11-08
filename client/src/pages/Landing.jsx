@@ -64,8 +64,8 @@ const Landing = () => {
 
   return (
     <>
-      <main className="flex flex-col container mx-auto h-full px-4 py-8 space-y-8 items-center justify-center self-center justify-self-center">
-        <div className="flex flex-row w-full items-center justify-center">
+      <main className="flex flex-col container mx-auto h-full px-4 py-8 space-y-8 items-center justify-start self-center justify-self-center">
+        <div className="flex flex-row w-full justify-center ">
           <Input
             type="text"
             placeholder="Search for now playing and upcoming movies here"
@@ -81,17 +81,16 @@ const Landing = () => {
           </Button> */}
         </div>
 
-        <div></div>
-        <div className="space-y-4 w-11/12 self-center items-center justify-self-center">
-          <h1 className="lg:text-4xl font-bold text-center">
+        <div className="space-y-4 w-8/12  items-center ">
+          <h1 className="xl:text-4xl font-bold text-center">
             Now playing & upcoming movies at Theater X
           </h1>
 
           <Carousel
-            className="mx-auto"
+            className="mx-auto "
             opts={{ align: "start", slidesToScroll: 1, slidesToShow: 3 }}
           >
-            <CarouselContent>
+            <CarouselContent >
               {filteredMovies.map((movie) => (
                 <CarouselItem key={movie.id} className="md:basis-1/3">
                   <Link

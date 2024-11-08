@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Link } from "react-router-dom";
 
 // Sample showtime data
 const showtimes = {
@@ -33,15 +34,12 @@ export default function MovieShowTime() {
       : { [selectedDate]: showtimes[selectedDate] };
 
   return (
-    <div className="min-h-screen bg-black text-white p-8">
-      {/* Movie Title Route */}
-      <div className="text-xl mb-8 font-light">/{movieName}</div>
+    <div className=" bg-black text-white p-8">
 
-      <div className="grid md:grid-cols-[400px,1fr] gap-8 max-w-6xl mx-auto">
-        {/* Movie Poster Section */}
+      <div className="grid md:grid-cols-[400px,1fr] gap-8 max-w-6xl mx-auto sticky">
         <div className="space-y-4">
-          <h1 className="text-2xl font-light">{movieName}</h1>
-          <div className="aspect-[2/3] relative border border-white">
+          <h1 className="text-2xl  font-bold">{movieName}</h1>
+          <div className="aspect-[2/3] h-3/5 relative border border-white hidden md:flex">
             <img
               src="/placeholder.svg"
               alt={`${movieName} Poster`}
@@ -78,12 +76,13 @@ export default function MovieShowTime() {
                     <div className="font-light">{screen}</div>
                     <div className="flex flex-wrap gap-4">
                       {times.map((time, index) => (
-                        <button
-                          key={index}
-                          className="px-4 py-2 border border-white rounded hover:bg-white hover:text-black transition-colors"
-                        >
-                          {time}
-                        </button>
+                        <Link
+                        to={`/movie/${encodeURIComponent(movieName)}/${screen.toLowerCase().replace(' ', '-')}/${date}/${encodeURIComponent(time)}`}
+                        key={index}
+                        className="px-4 py-2 border border-white rounded hover:bg-white hover:text-black transition-colors"
+                      >
+                        {time}
+                      </Link>
                       ))}
                     </div>
                   </div>
