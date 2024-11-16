@@ -1,7 +1,13 @@
 CREATE DATABASE IF NOT EXISTS movie_theater;
 USE movie_theater;
 
+DROP TABLE IF EXISTS credits_refund;
+DROP TABLE IF EXISTS payment;
+DROP TABLE IF EXISTS seat;
+DROP TABLE IF EXISTS schedule;
 DROP TABLE IF EXISTS movie;
+DROP TABLE IF EXISTS screen;
+DROP TABLE IF EXISTS users;
 
 create table if not exists movie (
     id int auto_increment primary key,
@@ -10,8 +16,6 @@ create table if not exists movie (
     url varchar(2048) null
 );
 
-DROP TABLE IF EXISTS screen;
-
 create table if not exists screen (
     id int auto_increment primary key,
     screenName varchar(20) not null unique,
@@ -19,8 +23,6 @@ create table if not exists screen (
     width int not null,
     capacity int as (width * length) stored
 );
-
-DROP TABLE IF EXISTS schedule;
 
 create table if not exists schedule (
     id int auto_increment primary key,
@@ -32,8 +34,6 @@ create table if not exists schedule (
     constraint schedules_screens_id_fk foreign key (screenId) references screen (id)
 );
 
-DROP TABLE IF EXISTS seat;
-
 create table if not exists seat (
     scheduleId int not null,
     seatNumber int not null,
@@ -42,18 +42,14 @@ create table if not exists seat (
     constraint schedules_seats_schedules_id_fk foreign key (scheduleId) references schedule (id)
 );
 
-DROP TABLE IF EXISTS users;
-
 create table if not exists users (
     id int auto_increment primary key,
     email varchar(50) not null unique,
     password varchar(255) not null,
-    paymentMethod varchar(50) null,
+    paymentMethod ENUM('debit', 'credit') null,
     cardNumber varchar(19) null,
     membershipExpiryDate timestamp null
 );
-
-DROP TABLE IF EXISTS payment;
 
 create table if not exists payment (
     id int auto_increment primary key,
@@ -61,7 +57,7 @@ create table if not exists payment (
     scheduleId int null,
     seatNumber int null,
     paymentTime timestamp default NOW() not null,
-    paymentMethod varchar(50) not null,
+    paymentMethod ENUM('debit', 'credit') not null,
     cardNumber varchar(19) null,
     creditSpent decimal(10, 2) default 0.00 not null,
     moneySpent decimal(10, 2) default 0.00 not null,
@@ -71,17 +67,14 @@ create table if not exists payment (
     constraint transactions_schedules_seats_schedule_id_seat_number_fk foreign key (scheduleId, seatNumber) references seat (scheduleId, seatNumber)
 );
 
-DROP TABLE IF EXISTS credits_refund;
-
 create table if not exists credits_refund (
     paymentId int not null primary key,
     creditsRefund decimal(10, 2) null,
-    expireDate timestamp not null,
+    expiryDate timestamp not null,
     constraint credits_refund_fk foreign key (paymentId) references payment (id)
 );
 
 DROP PROCEDURE IF EXISTS insert_schedule_seats;
-
 DELIMITER $$
 create procedure insert_schedule_seats(IN p_schedule_id int, IN p_screen_id int)
 BEGIN
