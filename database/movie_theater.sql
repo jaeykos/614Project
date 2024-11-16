@@ -2,6 +2,7 @@ CREATE DATABASE IF NOT EXISTS movie_theater;
 USE movie_theater;
 
 DROP TABLE IF EXISTS credits_refund;
+DROP TABLE IF EXISTS ticket;
 DROP TABLE IF EXISTS payment;
 DROP TABLE IF EXISTS seat;
 DROP TABLE IF EXISTS schedule;
@@ -51,20 +52,26 @@ create table if not exists users (
     membershipExpiryDate timestamp null
 );
 
+create table if not exists ticket (
+    id int auto_increment primary key,
+    userId int not null,
+    scheduleId int not null,
+    seatNumber int not null,
+    isCancelled tinyint(1) default 0 not null,
+    cancellationDate timestamp default null,
+    constraint ticket_users_id_fk foreign key (userId) references users (id),
+    constraint ticket_schedule_seat_scheduleId_seatNumber_fk foreign key (scheduleId, seatNumber) references seat (scheduleId, seatNumber)
+)
+
 create table if not exists payment (
     id int auto_increment primary key,
-    userId int null,
-    scheduleId int null,
-    seatNumber int null,
+    ticketId int,
     paymentTime timestamp default NOW() not null,
     paymentMethod ENUM('DEBIT', 'CREDIT') not null,
     cardNumber varchar(19) null,
     creditSpent decimal(10, 2) default 0.00 not null,
     moneySpent decimal(10, 2) default 0.00 not null,
-    isCancelled tinyint(1) default 0 not null,
-    cancellationDate timestamp null,
-    constraint orders_users_id_fk foreign key (userId) references users (id),
-    constraint transactions_schedules_seats_scheduleId_seatNumber_fk foreign key (scheduleId, seatNumber) references seat (scheduleId, seatNumber)
+    constraint payment_ticket_id_fk foreign key (ticketId) references ticket (id)
 );
 
 create table if not exists credits_refund (
