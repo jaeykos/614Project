@@ -61,7 +61,7 @@ create table if not exists ticket (
     cancellationDate timestamp default null,
     constraint ticket_users_id_fk foreign key (userId) references users (id),
     constraint ticket_schedule_seat_scheduleId_seatNumber_fk foreign key (scheduleId, seatNumber) references seat (scheduleId, seatNumber)
-)
+);
 
 create table if not exists payment (
     id int auto_increment primary key,
