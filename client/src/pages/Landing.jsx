@@ -13,54 +13,43 @@ import {
 } from "@/components/ui/carousel";
 
 // Sample movie data
-const movies = [
-  { id: 1, title: "The Dark Knight", image: "/vite.svg" },
-  { id: 2, title: "Inception", image: "/vite.svg" },
-  { id: 3, title: "Interstellar", image: "/vite.svg" },
-  { id: 4, title: "The Matrix", image: "/vite.svg" },
-  { id: 5, title: "Pulp Fiction", image: "/vite.svg" },
-  { id: 6, title: "Fight Club", image: "/vite.svg" },
-];
+// const movies = [
+//   { id: 1, title: "The Dark Knight", image: "/vite.svg" },
+//   { id: 2, title: "Inception", image: "/vite.svg" },
+//   { id: 3, title: "Interstellar", image: "/vite.svg" },
+//   { id: 4, title: "The Matrix", image: "/vite.svg" },
+//   { id: 5, title: "Pulp Fiction", image: "/vite.svg" },
+//   { id: 6, title: "Fight Club", image: "/vite.svg" },
+// ];
 
 const Landing = () => {
   const [searchQuery, setSearchQuery] = useState("");
+
+  const { isLoggedIn } = useSharedState();
+  const [matchedUsername, setMatchedUsername] = useState("");
+  const [movies, setMovies] = useState([]);
+
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const filteredMovies = movies.filter((movie) =>
     movie.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const { isLoggedIn } = useSharedState();
-  const [matchedUsername, setMatchedUsername] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/public-movies");
+        const data = await response.json();
+        setMovies(data.movies);
 
-  // useEffect(() => {
-  //   if (isLoggedIn) {
-  //     fetch("http://localhost:3000/user-metadata", {
-  //       headers: {
-  //         token: localStorage.getItem("token"),
-  //       },
-  //     })
-  //       .then((response) => {
-  //         if (!response.ok) {
-  //           throw new Error("Network response was not ok");
-  //         }
-  //         return response.json();
-  //       })
-  //       .then((data) => {
-  //         if (!data.bioComplete) {
-  //           navigate("/bio");
-  //         }
-
-  //         setMatchedUsername(data.matchedUsername);
-  //         console.log(data);
-  //       })
-  //       .catch((error) => {
-  //         setError("Error fetching data");
-  //         console.log(error);
-  //       });
-  //   }
-  // }, [isLoggedIn]);
+        console.log(movies);
+      } catch (error) {
+        console.error("Error fetching movies:", error);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <>
@@ -90,7 +79,7 @@ const Landing = () => {
             className="mx-auto "
             opts={{ align: "start", slidesToScroll: 1, slidesToShow: 3 }}
           >
-            <CarouselContent >
+            <CarouselContent>
               {filteredMovies.map((movie) => (
                 <CarouselItem key={movie.id} className="md:basis-1/3">
                   <Link

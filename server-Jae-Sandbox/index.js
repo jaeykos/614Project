@@ -31,6 +31,39 @@ let messages = [
 ];
 
 // Endpoint to fetch initial messages
+app.get("/public-movies", (req, res) => {
+  movies = [
+    {
+      id: 1,
+      title: "The Great Adventure",
+      image: "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
+    },
+    {
+      id: 2,
+      title: "Mystery in the Woods",
+      image: "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
+    },
+    {
+      id: 3,
+      title: "Space Odyssey",
+      image: "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
+    },
+    {
+      id: 4,
+      title: "Romance Under the Stars",
+      image: "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
+    },
+    {
+      id: 5,
+      title: "The Last Samurai",
+      image: "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
+    },
+  ];
+
+  res.status(200).json({ movies });
+});
+
+// Endpoint to fetch initial messages
 app.get("/messages", (req, res) => {
   res.json({ messages });
 });
@@ -137,7 +170,7 @@ app.get("/user-matches", (req, res) => {
     {
       username: "User2",
       matchedUsername: "UserB",
-      reason: "Proximity"
+      reason: "Proximity",
     },
     {
       username: "User3",
@@ -150,7 +183,7 @@ app.get("/user-matches", (req, res) => {
   // });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
