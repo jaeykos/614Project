@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import {
   Select,
@@ -22,16 +22,33 @@ const showtimes = {
 };
 
 export default function MovieShowTime() {
-  const { movie } = useParams();
-  const movieName = movie
-    ? decodeURIComponent(movie).replace(/-/g, " ")
-    : "Unknown Movie";
+  const { movieId } = useParams();
+  const {showTimes, setShowTimes} = useState([])
+  // const movieName = movie
+  //   ? decodeURIComponent(movie).replace(/-/g, " ")
+  //   : "Unknown Movie";
   const [selectedDate, setSelectedDate] = useState("all");
 
   const filteredShowtimes =
     selectedDate === "all"
       ? showtimes
       : { [selectedDate]: showtimes[selectedDate] };
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/public-movies");
+        const data = await response.json();
+        setMovies(data.movies);
+
+        console.log(movies);
+      } catch (error) {
+        console.error("Error fetching movies:", error);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className=" bg-black text-white p-8">

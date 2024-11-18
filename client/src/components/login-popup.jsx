@@ -1,44 +1,36 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { useSharedState } from "../MyContext";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
 
-export default function LoginForm() {
+export default function LoginPopup() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
+  const { isUserPremium, setIsUserPremium } = useSharedState();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
 
-    if (!username || !password) {
+    if (!email || !password) {
       setError("Please fill in all fields.");
       return;
     }
 
-
     // Here you would typically call your authentication function
-    console.log("Login attempt with:", { username, password });
+    console.log("Login attempt with:", { email, password });
 
     var responseStatus;
     fetch("http://localhost:3000/login", {
       method: "post",
-      body: JSON.stringify({ username: username, password: password }),
+      body: JSON.stringify({ email: email, password: password }),
       headers: {
         "Content-Type": "application/json",
 
@@ -53,8 +45,7 @@ export default function LoginForm() {
           // Store the token in a cookie/local storage
           localStorage.setItem("token", responsePayload.token);
           setIsLoggedIn(true);
-          // alert("Login success!");
-          navigate("/");
+          setIsOpen(false)
         } else {
           alert(responsePayload);
         }
@@ -65,24 +56,23 @@ export default function LoginForm() {
       });
   };
 
+
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="text-xl xl:text-4xl font-bold">Login</CardTitle>
-        <CardDescription>
-          Enter your credentials to access your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button>Login</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md p-6  rounded-lg">
+        <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
-              id="username"
-              type="text"
-              placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
@@ -99,15 +89,19 @@ export default function LoginForm() {
           </div>
           {error && (
             <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <Button type="submit" className="flex w-fit">
-            Log in
+          <Button type="submit" className="w-full bg-zinc-300 hover:bg-zinc-500">
+            Log In
           </Button>
         </form>
-      </CardContent>
-    </Card>
-  );
+        <div className="mt-4 text-center">
+          <Button variant="link" className="text-sm">
+            Don't have an account? Sign up
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
 }

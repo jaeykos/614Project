@@ -9,13 +9,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, MessageSquareX, LogOut } from "lucide-react";
+import { User, Crown, LogOut } from "lucide-react";
 import { useSharedState } from "../MyContext";
 
 export default function UserIconDropdown({ email }) {
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
   const [isOpen, setIsOpen] = useState(false);
-
+  
   const firstInitial = email.charAt(0).toUpperCase();
 
   const handleLogout = () => {
@@ -42,7 +42,7 @@ export default function UserIconDropdown({ email }) {
       <DropdownMenuContent className="w-56 bg-zinc-800 text-zinc-100 border-zinc-700">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1 py-2">
-            <p className="text-xl font-medium leading-none">{email}</p>
+            <p className="text-md font-medium leading-none">{email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-zinc-700" />
@@ -53,7 +53,7 @@ export default function UserIconDropdown({ email }) {
           </span>
         </DropdownMenuItem>
         <DropdownMenuItem className="focus:bg-zinc-700 focus:text-zinc-100">
-          <User className="mr-2 h-4 w-4" />
+          <Crown className="mr-2 h-4 w-4" />
           <span onClick={() => navigate("/profile")}>
             Become premium member
           </span>

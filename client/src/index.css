@@ -9,7 +9,8 @@
 html,
 body {
   overflow: auto;
-  @apply text-zinc-100;
+  @apply text-zinc-200;
+  @apply bg-zinc-900;
 }
 
 @layer base {
