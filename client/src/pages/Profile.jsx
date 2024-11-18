@@ -1,121 +1,31 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSharedState } from "../MyContext";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+
+
+import CancelTicketDialog from "@/components/cancel-ticket-dialogue";
 
 // Mock data
-const mockUserData = {
-  email: "user@example.com",
-  membership: "non-premium",
-  paymentMethod: {
-    type: "Credit",
-    number: "xxxx xxxx xxxx 5234"
-  },
-  reservedTickets: [
-    { id: "XX23XX", movie: "Title A", screen: "1", seat: "A1", playTime: "08/12/2023" },
-    { id: "XX390X", movie: "Title B", screen: "1", seat: "A1", playTime: "09/12/2023" }
-  ],
-  cancelledCredits: [
-    { amount: 7.00, expiryDate: "01/01/2024" },
-    { amount: 8.00, expiryDate: "02/01/2024" }
-  ]
-}
+// const mockUserData = {
+//   email: "user@example.com",
+//   membership: "non-premium",
+//   paymentMethod: {
+//     type: "Credit",
+//     number: "xxxx xxxx xxxx 5234"
+//   },
+//   reservedTickets: [
+//     { id: "XX23XX", movie: "Title A", screen: "1", seat: "A1", playTime: "08/12/2023" },
+//     { id: "XX390X", movie: "Title B", screen: "1", seat: "A1", playTime: "09/12/2023" }
+//   ],
+//   cancelledCredits: [
+//     { amount: 7.00, expiryDate: "01/01/2024" },
+//     { amount: 8.00, expiryDate: "02/01/2024" }
+//   ]
+// }
 
-function CancelTicketDialog({ 
-  isOpen, 
-  onClose, 
-  isPremium, 
-  onConfirm 
-}) {
-  const [showSuccess, setShowSuccess] = useState(false)
-
-  const handleConfirm = () => {
-    onConfirm()
-    setShowSuccess(true)
-  }
-
-  const handleClose = () => {
-    setShowSuccess(false)
-    onClose()
-  }
-
-  return (
-    <>
-      {/* Confirmation Dialog */}
-      <Dialog open={isOpen && !showSuccess} onOpenChange={handleClose}>
-        <DialogContent className="bg-black border border-white text-white sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-light">Cancel Ticket</DialogTitle>
-            <DialogDescription className="text-white/90 space-y-4">
-              {isPremium ? (
-                <p>
-                  You will receive a cancellation credit of full amount for future purchase 
-                  up maximum of one-year expiration date
-                </p>
-              ) : (
-                <>
-                  <p>
-                    You will receive a cancellation credit of full amount minus 15% administration fee
-                    for future purchase up maximum of one-year expiration date
-                  </p>
-                  <p>
-                    If you become our premium member, there is no 15% administration fee, 
-                    and you get other benefits too!
-                  </p>
-                </>
-              )}
-              <p>Are you sure you want to cancel your ticket?</p>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={handleConfirm}
-              className="flex-1 bg-transparent border-white text-white hover:bg-white hover:text-black"
-            >
-              Yes
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleClose}
-              className="flex-1 bg-transparent border-white text-white hover:bg-white hover:text-black"
-            >
-              No
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Success Dialog */}
-      <Dialog open={showSuccess} onOpenChange={handleClose}>
-        <DialogContent className="bg-black border border-white text-white sm:max-w-md">
-          <DialogDescription className="text-white pt-4">
-            You have successfully cancelled your reservation. See your profile for your
-            remaining cancelled credits.
-          </DialogDescription>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={handleClose}
-              className="w-full bg-transparent border-white text-white hover:bg-white hover:text-black"
-            >
-              Ok
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
-  )
-}
 
 export default function Component() {
   const [showPasswordChange, setShowPasswordChange] = useState(false)
@@ -124,6 +34,14 @@ export default function Component() {
   const [cardType, setCardType] = useState("credit")
   const [cardNumber, setCardNumber] = useState("")
   const [selectedTicket, setSelectedTicket] = useState(null)
+  const [tickets, setTickets] = useState([]);
+  const { isLoggedIn, setIsLoggedIn } = useSharedState();
+  const { isUserPremium, setIsUserPremium } = useSharedState();
+  const [userEmail, setUserEmail] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [creditOrDebit, setCreditOrDebit] = useState(false);
+  const [remainingCancelledCredits, setRemainingCancelledCredits] = useState([]);
+  const [currentCardNumber, setCurrentCardNumber] = useState("")
 
   const handlePasswordChange = (e) => {
     e.preventDefault()
@@ -140,18 +58,108 @@ export default function Component() {
   }
 
   const handleCancelTicket = (ticketId) => {
-    setSelectedTicket(ticketId)
-  }
-
+    setSelectedTicket(ticketId);
+    setIsDialogOpen(true);
+  };
+  
   const handleConfirmCancelTicket = () => {
-    console.log("Cancelling ticket:", selectedTicket)
-    // Here you would typically call an API to cancel the ticket
-    // For now, we'll just remove it from the mock data
-    mockUserData.reservedTickets = mockUserData.reservedTickets.filter(
-      ticket => ticket.id !== selectedTicket
-    )
-    setSelectedTicket(null)
-  }
+    //Implementation to handle ticket cancellation
+    console.log("Cancelling ticket:", selectedTicket);
+  };
+
+
+  useEffect(() => {
+    const getUserProfile = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/user-profile", {
+          headers: {
+            token: localStorage.getItem("token"),
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const data = await response.json();
+        setUserEmail(data.userEmail || "");
+        setIsUserPremium(data.premiumStatus);
+
+        console.log(data);
+      } catch (error) {
+        setError("Error fetching data");
+        setIsLoggedIn(false);
+        console.log(error);
+      }
+    };
+
+
+    const getPaymentMethod = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/payment-method", {
+          headers: {
+            token: localStorage.getItem("token"),
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const data = await response.json();
+        setCreditOrDebit(data.creditOrDebit || "");
+        setCardNumber(data.cardNumber);
+        
+        console.log(data);
+      } catch (error) {
+        setError("Error fetching data");
+        setIsLoggedIn(false);
+        console.log(error);
+      }
+    };
+
+    const getTickets = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/upcoming-reserved-tickets", {
+          headers: {
+            token: localStorage.getItem("token"),
+          },
+        });
+        const data = await response.json();
+        setTickets(data.tickets);
+
+        console.log(tickets);
+      } catch (error) {
+        console.error("Error fetching movies:", error);
+      }
+    };
+
+    const getRemainingCancelledCredits = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/remaining-cancelled-credits", {
+          headers: {
+            token: localStorage.getItem("token"),
+          },
+        });
+        const data = await response.json();
+        setRemainingCancelledCredits(data.remainingCancelledCredits);
+
+        console.log(tickets);
+      } catch (error) {
+        console.error("Error fetching movies:", error);
+      }
+    };
+
+    if (isLoggedIn) {
+      getUserProfile();
+      getTickets();
+      getPaymentMethod();
+      getRemainingCancelledCredits();
+    }
+  }, [isLoggedIn]);
+
+
+
 
   return (
     <div className="min-h-screen bg-black text-white p-8">
@@ -159,7 +167,7 @@ export default function Component() {
         {/* Profile Header */}
         <div className="space-y-4">
           <h1 className="text-2xl font-light">Profile</h1>
-          <p>Email: {mockUserData.email}</p>
+          <p>Email: {userEmail}</p>
           
           {/* Password Change Section */}
           <div className="space-y-4">
@@ -168,11 +176,11 @@ export default function Component() {
               onClick={() => setShowPasswordChange(!showPasswordChange)}
               className="border-white text-white hover:bg-white hover:text-black"
             >
-              Change Password
+              Change Password 
             </Button>
             
             {showPasswordChange && (
-              <form onSubmit={handlePasswordChange} className="space-y-4 border border-blue-500 p-4 rounded">
+              <form onSubmit={handlePasswordChange} className="space-y-4 border border-zinc-500 p-4 rounded">
                 <div className="space-y-2">
                   <Label htmlFor="new-password">new password:</Label>
                   <Input
@@ -196,27 +204,32 @@ export default function Component() {
 
         {/* Premium Membership Section */}
         <div className="space-y-4">
-          <div className="border border-white p-4 rounded">
+          {
+            isUserPremium?<></>:<div className="border border-white p-4 rounded">
             <p>Get exclusive access to premium screenings and early ticket bookings with our premium membership!</p>
           </div>
+          }
           
           <div className="flex items-center justify-between">
-            <p>Membership Status: {mockUserData.membership}</p>
+            <p>Membership Status: {isUserPremium?<>Premium</>:<>Not Precmium</>}</p>
+            
+            {
+            isUserPremium?<></>:
             <Button 
               variant="outline"
               className="border-white text-white hover:bg-white hover:text-black"
             >
               Upgrade to Premium Membership
-            </Button>
+            </Button>}
           </div>
         </div>
 
         {/* Payment Method Section */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col items-start gap-3 justify-between">
             <div>
-              <p>Payment Method</p>
-              <p className="text-sm">{mockUserData.paymentMethod.type}: {mockUserData.paymentMethod.number}</p>
+              <p className="text-lg">Payment Method</p>
+              <p className="text-md">{cardType} card ending with {cardNumber.slice(-3)}</p>
             </div>
             <Button 
               variant="outline"
@@ -228,7 +241,7 @@ export default function Component() {
           </div>
 
           {showPaymentUpdate && (
-            <form onSubmit={handlePaymentUpdate} className="space-y-4 border border-blue-500 p-4 rounded">
+            <form onSubmit={handlePaymentUpdate} className="space-y-4 border border-zinc-500 p-4 rounded">
               <div className="space-y-4">
                 <Label>Payment Method</Label>
                 <RadioGroup value={cardType} onValueChange={setCardType} className="flex gap-4">
@@ -270,22 +283,22 @@ export default function Component() {
             <table className="w-full">
               <thead>
                 <tr className="text-left">
-                  <th className="p-2">Ticket Number</th>
-                  <th className="p-2">Movie</th>
-                  <th className="p-2">Screen</th>
-                  <th className="p-2">Seat</th>
-                  <th className="p-2">Play Time</th>
-                  <th className="p-2"></th>
+                  <th className="p-2 text-center">Ticket Number</th>
+                  <th className="p-2 text-center">Movie</th>
+                  <th className="p-2 text-center">Screen</th>
+                  <th className="p-2 text-center">Seat</th>
+                  <th className="p-2 text-center">Play Time</th>
+                  <th className="p-2 text-center"></th>
                 </tr>
               </thead>
               <tbody>
-                {mockUserData.reservedTickets.map((ticket) => (
+                {tickets.map((ticket) => (
                   <tr key={ticket.id}>
-                    <td className="p-2">{ticket.id}</td>
-                    <td className="p-2">{ticket.movie}</td>
-                    <td className="p-2">{ticket.screen}</td>
-                    <td className="p-2">{ticket.seat}</td>
-                    <td className="p-2">{ticket.playTime}</td>
+                    <td className="p-2 text-center">{ticket.ticketNumber}</td>
+                    <td className="p-2 text-center">{ticket.moveTitle}</td>
+                    <td className="p-2 text-center">{ticket.screen}</td>
+                    <td className="p-2 text-center">{ticket.seat}</td>
+                    <td className="p-2 text-center">{ticket.playTime}</td>
                     <td className="p-2">
                       <Button 
                         onClick={() => handleCancelTicket(ticket.id)}
@@ -314,16 +327,16 @@ export default function Component() {
                 </tr>
               </thead>
               <tbody>
-                {mockUserData.cancelledCredits.map((credit, index) => (
+                {remainingCancelledCredits.map((credit, index) => (
                   <tr key={index} className="border-b border-white/20">
-                    <td className="p-2">{credit.expiryDate}</td>
+                    <td className="p-2">{credit.expiryDate.split('T')[0]}</td>
                     <td className="p-2 text-right">${credit.amount.toFixed(2)}</td>
                   </tr>
                 ))}
                 <tr className="font-bold">
                   <td className="p-2">Total:</td>
                   <td className="p-2 text-right">
-                    ${mockUserData.cancelledCredits.reduce((sum, credit) => sum + credit.amount, 0).toFixed(2)}
+                    ${remainingCancelledCredits.reduce((sum, credit) => sum + credit.amount, 0).toFixed(2)}
                   </td>
                 </tr>
               </tbody>
@@ -334,11 +347,18 @@ export default function Component() {
 
       {/* Cancel Ticket Dialog */}
       <CancelTicketDialog
-        isOpen={!!selectedTicket}
-        onClose={() => setSelectedTicket(null)}
-        isPremium={mockUserData.membership === 'premium'}
-        onConfirm={handleConfirmCancelTicket}
-      />
+  isOpen={isDialogOpen}
+  onClose={() => {
+    setIsDialogOpen(false);
+    setSelectedTicket(null);
+  }}
+  isPremium={isUserPremium === true}
+  onConfirm={() => {
+    handleConfirmCancelTicket();
+    setIsDialogOpen(false);
+    setSelectedTicket(null);
+  }}
+/>
     </div>
   )
 }

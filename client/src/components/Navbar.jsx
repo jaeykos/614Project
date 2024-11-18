@@ -2,16 +2,17 @@ import { Link } from "react-router-dom";
 import { useSharedState } from "../MyContext";
 import UserIconDropdown from "./UserIconWithDropDown";
 import { useEffect, useState } from "react";
+import LoginPopup from "./login-popup";
 
 export default function Navbar() {
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
-  const [username, setUsername] = useState("");
-  const [matchedUsername, setMatchedUsername] = useState("");
+  const { isUserPremium, setIsUserPremium } = useSharedState();
+  const [userEmail, setUserEmail] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (isLoggedIn) {
-      fetch("http://localhost:3000/user-metadata", {
+      fetch("http://localhost:3000/user-profile", {
         headers: {
           token: localStorage.getItem("token"),
         },
@@ -24,8 +25,8 @@ export default function Navbar() {
         })
         .then((data) => {
           setIsLoggedIn(true);
-          setUsername(data.username || "");
-          setMatchedUsername(data.matchedUsername);
+          setUserEmail(data.userEmail || "");
+          setIsUserPremium(data.isUserPremium);
           console.log(data);
         })
         .catch((error) => {
@@ -45,17 +46,15 @@ export default function Navbar() {
         AcmePlex
       </Link>
 
-      {/* <div className="RightSideWrapper self-center items-center flex flex-row gap-6 ">
+      
+
+      <div className="RightSideWrapper self-center items-center flex flex-row gap-6 ">
         {isLoggedIn ? (
-          <UserIconDropdown username={username} />
+          <UserIconDropdown email={userEmail} />
         ) : (
           <div className="flex flex-row">
-            <Link
-              className="flex    items-center px-2 text-zinc-200 hover:text-zinc-600 transition  ease-in-out"
-              to="/log-in"
-            >
-              Log in
-            </Link>
+            
+            <LoginPopup/>
             <Link
               className="flex   items-center  px-2 text-zinc-200 hover:text-zinc-600 transition  ease-in-out"
               to="/sign-up"
@@ -64,7 +63,7 @@ export default function Navbar() {
             </Link>
           </div>
         )}
-      </div> */}
+      </div>
     </nav>
   );
 }

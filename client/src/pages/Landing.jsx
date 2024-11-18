@@ -1,5 +1,4 @@
 import { useSharedState } from "../MyContext";
-import LogIn from "@/components/log-in";
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -26,7 +25,6 @@ const Landing = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const { isLoggedIn } = useSharedState();
-  const [matchedUsername, setMatchedUsername] = useState("");
   const [movies, setMovies] = useState([]);
 
   const [error, setError] = useState("");
@@ -84,7 +82,7 @@ const Landing = () => {
                 <CarouselItem key={movie.id} className="md:basis-1/3">
                   <Link
                     to={`/movie/${encodeURIComponent(
-                      movie.title.toLowerCase().replace(/ /g, "-")
+                      movie.id
                     )}`}
                   >
                     <div className="p-1">
