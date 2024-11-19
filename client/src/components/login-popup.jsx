@@ -28,7 +28,7 @@ export default function LoginPopup() {
 
     var responseStatus;
     fetch("http://localhost:8080/login", {
-      method: "post",
+      method: "POST",
       body: JSON.stringify({ email: email, password: password }),
       headers: {
         "Content-Type": "application/json",
@@ -36,22 +36,25 @@ export default function LoginPopup() {
     })
       .then((response) => {
         responseStatus = response.status;
-        return response.json();
+        console.log(response)
+        return response.text();
       })
       .then((responsePayload) => {
+        console.log("if resonse is 200")
         if (responseStatus === 200) {
-          // Store the token in a cookie/local storage
-          localStorage.setItem("token", responsePayload.token);
+          console.log("response is 200")
+          console.log(responsePayload)
+          localStorage.setItem("token", responsePayload);
           setIsLoggedIn(true);
           setIsOpen(false);
         } else {
           alert("Log in not successful");
         }
       })
-      .catch((err) => {
-        setIsLoggedIn(false);
-        console.log(err);
-      });
+      // .catch((err) => {
+      //   setIsLoggedIn(false);
+      //   console.log(err);
+      // });
   };
 
   return (

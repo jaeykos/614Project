@@ -42,12 +42,10 @@ export default function MovieShowTime() {
   useEffect(() => {
     const fetchShowtimes = async () => {
       try {
-        const response = await fetch("/api/showtimes", {
-          method: "POST",
+        const response = await fetch(`/api/showtimes/${movieId}`, {
           headers: {
-            "Content-Type": "application/json",
+            token: localStorage.getItem("token"),
           },
-          body: JSON.stringify({ movieId }),
         });
         const data = await response.json();
         console.log("showtimes");
@@ -60,12 +58,10 @@ export default function MovieShowTime() {
 
     const getMovie = async () => {
       try {
-        const response = await fetch("/api/movie", {
-          method: "POST",
+        const response = await fetch(`/api/movie${movieId}`, {
           headers: {
-            "Content-Type": "application/json",
+            token: localStorage.getItem("token"),
           },
-          body: JSON.stringify({ movieId }),
         });
         const data = await response.json();
         console.log(data);
@@ -73,6 +69,7 @@ export default function MovieShowTime() {
         setIsMoviePublic(data.isMoviePublic);
       } catch (error) {
         console.error("Error fetching movie data:", error);
+        
       }
     };
 

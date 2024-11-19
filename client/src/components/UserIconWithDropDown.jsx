@@ -12,7 +12,7 @@ import {
 import { User, Crown, LogOut } from "lucide-react";
 import { useSharedState } from "../MyContext";
 
-export default function UserIconDropdown({ email }) {
+export default function UserIconDropdown({ email, membershipStatus }) {
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
   const [isOpen, setIsOpen] = useState(false);
   
@@ -52,12 +52,13 @@ export default function UserIconDropdown({ email }) {
             View profile & tickets
           </span>
         </DropdownMenuItem>
-        <DropdownMenuItem className="focus:bg-zinc-700 focus:text-zinc-100">
+        {membershipStatus == "PREMIUM"?<DropdownMenuItem className="focus:bg-zinc-700 focus:text-zinc-100">
           <Crown className="mr-2 h-4 w-4" />
           <span onClick={() => navigate("/profile")}>
             Become premium member
           </span>
-        </DropdownMenuItem>
+        </DropdownMenuItem>:<></>}
+        
 
         <DropdownMenuSeparator className="bg-zinc-700" />
         <DropdownMenuItem className="focus:bg-zinc-700 focus:text-zinc-100">

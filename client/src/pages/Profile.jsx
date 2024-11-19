@@ -3,6 +3,7 @@ import { useSharedState } from "../MyContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useNavigate, Link } from "react-router-dom";
 import { Label } from "@/components/ui/label";
 
 import CancelTicketDialog from "@/components/cancel-ticket-dialogue";
@@ -18,6 +19,7 @@ export default function Component() {
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
   const { membershipStatus, setMembershipStatus } =
     useSharedState("NON_PREMIUM");
+  const { membershipExpiryDate, setMembershipExpiryDate } = ""
   const [userEmail, setUserEmail] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [creditOrDebit, setCreditOrDebit] = useState(false);
@@ -26,6 +28,7 @@ export default function Component() {
   );
   const [currentCardNumber, setCurrentCardNumber] = useState("");
 
+  const navigate = useNavigate();
   const handlePasswordChange = (e) => {
     e.preventDefault();
     console.log("Changing password to:", newPassword);
@@ -65,11 +68,16 @@ export default function Component() {
 
         const data = await response.json();
         setUserEmail(data.email || "");
-        setMembershipStatus(data.premiumStatus);
+        setCardType(data.paymentMethod)
+        setCardNumber(data.cardNumber)
+        setMembershipStatus(data.membershipStatus);
+        setMembershipExpiryDate(data.setMembershipExpiryDate)
 
         console.log(data);
       } catch (error) {
         setIsLoggedIn(false);
+        
+        navigate("/profile");
         console.log(error);
       }
     };
@@ -124,7 +132,7 @@ export default function Component() {
         const data = await response.json();
         setRemainingCancelledCredits(data.remainingCancelledCredits);
 
-        console.log(tickets);
+        console.log(tickets);1
       } catch (error) {
         console.error("Error fetching movies:", error);
       }
@@ -184,29 +192,46 @@ export default function Component() {
 
         {/* Premium Membership Section */}
         <div className="space-y-4">
-          {membershipStatus === "PREIMUM" ? (
-            <></>
-          ) : (
-            <div className="border border-white p-4 rounded">
-              <p>
-                Get exclusive access to premium screenings and early ticket
-                bookings with our premium membership!
-              </p>
-            </div>
-          )}
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col items-start justify-between">
+            <div className="flex flex-col">
+
             <p>
               Membership Status:{" "}
               {membershipStatus === "PREIMUM" ? <>Premium</> : <>Not Premium</>}
             </p>
 
             {membershipStatus === "PREIMUM" ? (
+            <></>
+          ) : (
+            <div className="border border-white text-md p-4 rounded mt-2">
+              <p className="mb-2">
+                Become a premium member to get the premium benefits!
+              </p>
+              <p className="ml-4">
+                 - Browse non-public movies before anyone!
+              </p>
+              <p className="ml-4">
+                 - Only premium users can book seats for non-public movies before it becomes public.
+              </p>
+              <p className="ml-4">
+                 - Zero administration fee for cancelling tickets. 
+              </p>
+
+              <p className="text-sm mt-4">
+                * You only pay one time fee of $25 dollars for one year premium membership. No recurring fees!  
+              </p>
+              
+            </div>
+          )}
+            </div>
+
+            {membershipStatus === "PREIMUM" ? (
               <></>
             ) : (
               <Button
                 variant="outline"
-                className="border-white text-white hover:bg-white hover:text-black"
+                className="border-white text-white hover:bg-white hover:text-black mt-4"
               >
                 Upgrade to Premium Membership
               </Button>
@@ -216,12 +241,9 @@ export default function Component() {
 
         {/* Payment Method Section */}
         <div className="space-y-4">
-          <div className="flex flex-col items-start gap-3 justify-between">
-            <div>
-              <p className="text-lg">Payment Method</p>
-              <p className="text-md">
-                {cardType} card ending with {cardNumber.slice(-3)}
-              </p>
+          <div className="flex flex-col  items-start gap-3 justify-between">
+            <div className="flex flex-row items-end">
+              <p className="text-lg">Payment Method: {cardType.toLowerCase()} card ending with {cardNumber.slice(-3)}</p>
             </div>
             <Button
               variant="outline"
@@ -284,7 +306,7 @@ export default function Component() {
         </div>
 
         {/* Reserved Tickets Section */}
-        <div className="space-y-4">
+        {/* <div className="space-y-4">
           <h2 className="text-xl font-light">
             Reserved Tickets for Upcoming Movies
           </h2>
@@ -322,10 +344,10 @@ export default function Component() {
               </tbody>
             </table>
           </div>
-        </div>
+        </div> */}
 
         {/* Cancelled Credit Section */}
-        <div className="space-y-4 pb-10">
+        {/* <div className="space-y-4 pb-10">
           <h2 className="text-xl font-light">Remaining Cancelled Credit</h2>
           <div className="max-w-xs">
             <table className="w-full text-sm">
@@ -356,11 +378,11 @@ export default function Component() {
               </tbody>
             </table>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Cancel Ticket Dialog */}
-      <CancelTicketDialog
+      {/* <CancelTicketDialog
         isOpen={isDialogOpen}
         onClose={() => {
           setIsDialogOpen(false);
@@ -372,7 +394,7 @@ export default function Component() {
           setIsDialogOpen(false);
           setSelectedTicket(null);
         }}
-      />
+      /> */}
     </div>
   );
 }

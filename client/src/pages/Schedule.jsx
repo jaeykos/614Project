@@ -25,12 +25,10 @@ export default function Schedule() {
 
     const fetchSchedule = async () => {
       try {
-        const response = await fetch("/api/schedule", {
-          method: "POST",
+        const response = await fetch(`/api/schedule/${scheduleId}`, {
           headers: {
-            "Content-Type": "application/json",
+            token: localStorage.getItem("token"),
           },
-          body: JSON.stringify({ scheduleId }),
         });
         const data = await response.json();
         console.log("schedule");

@@ -6,13 +6,14 @@ import LoginPopup from "./login-popup";
 
 export default function Navbar() {
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
-  const { isUserPremium, setIsUserPremium } = useSharedState();
+  const [membershipStatus, setMembershipStatus]   = useState("");
+  const [membershipExpiryDate, setMembershipExpiryDate ]  = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (isLoggedIn) {
-      fetch("/api/user-profile", {
+      fetch("http://localhost:8080/user", {
         headers: {
           token: localStorage.getItem("token"),
         },
@@ -24,9 +25,12 @@ export default function Navbar() {
           return response.json();
         })
         .then((data) => {
+          console.log("line right before settnig logged in as true")
           setIsLoggedIn(true);
-          setUserEmail(data.userEmail || "");
-          setIsUserPremium(data.isUserPremium);
+          setUserEmail(data.email || "");
+          setMembershipStatus(data.membershipStatus);
+          setMembershipExpiryDate(data.membershipExpiryDate)
+
           console.log(data);
         })
         .catch((error) => {
@@ -50,7 +54,7 @@ export default function Navbar() {
 
       <div className="RightSideWrapper self-center items-center flex flex-row gap-6 ">
         {isLoggedIn ? (
-          <UserIconDropdown email={userEmail} />
+          <UserIconDropdown email={userEmail} membershipStatus = {membershipStatus} />
         ) : (
           <div className="flex flex-row">
             

@@ -58,16 +58,11 @@ app.post("/login", (req, res, next) => {
 
 app.get("/user-profile", (req, res, next) => {
   const token = req.headers.token;
-  jwt.verify(token, SECRET_KEY, (err, decoded) => {
-    if (err) {
-      res.status(401).json("Invalid token, cannot be decrypted");
-    } else {
+  
       res.status(200).json({
         userEmail: "harman@example.com",
         premiumStatus: true,
       });
-    }
-  });
 });
 
 app.get("/payment-method", (req, res, next) => {
@@ -163,7 +158,7 @@ app.get("/remaining-cancelled-credits", (req, res, next) => {
   });
 });
 
-app.post("/showtimes", (req, res) => {
+app.get("/showtimes/:movieId", (req, res) => {
   res.status(200).json({
     "November 1, 2024": {
       "Screen 1": [
@@ -181,14 +176,16 @@ app.post("/showtimes", (req, res) => {
   });
 });
 
-app.post("/movie", (req, res) => {
+app.get("/movie/:id", (req, res) => {
   res.status(200).json({
     movieName: "xxx",
     isMoviePublic: true,
   });
 });
 
-app.post("/schedule", (req, res) => {
+app.get("/schedule/:id", (req, res) => {
+  const { id } = req.params;
+  console.log(id)
   res.status(200).json({
     movieName: "xxx",
     price: 11.0,
