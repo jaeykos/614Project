@@ -1,19 +1,18 @@
-import React, { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useSharedState } from "../MyContext";
 
 export default function LoginPopup() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
   const { isUserPremium, setIsUserPremium } = useSharedState();
-
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -28,7 +27,7 @@ export default function LoginPopup() {
     console.log("Login attempt with:", { email, password });
 
     var responseStatus;
-    fetch("api/login", {
+    fetch("http://localhost:8080/login", {
       method: "post",
       body: JSON.stringify({ email: email, password: password }),
       headers: {
@@ -44,9 +43,9 @@ export default function LoginPopup() {
           // Store the token in a cookie/local storage
           localStorage.setItem("token", responsePayload.token);
           setIsLoggedIn(true);
-          setIsOpen(false)
+          setIsOpen(false);
         } else {
-          alert(responsePayload);
+          alert("Log in not successful");
         }
       })
       .catch((err) => {
@@ -54,7 +53,6 @@ export default function LoginPopup() {
         console.log(err);
       });
   };
-
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -88,10 +86,13 @@ export default function LoginPopup() {
           </div>
           {error && (
             <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{error} Log in not successful</AlertDescription>
             </Alert>
           )}
-          <Button type="submit" className="w-full bg-zinc-300 hover:bg-zinc-500">
+          <Button
+            type="submit"
+            className="w-full bg-zinc-300 hover:bg-zinc-500"
+          >
             Log In
           </Button>
         </form>
@@ -102,5 +103,5 @@ export default function LoginPopup() {
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

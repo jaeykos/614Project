@@ -49,7 +49,10 @@ app.post("/login", (req, res, next) => {
   if (loginIsSuccessful) {
     // Generate the token and send it to the user
     const token = jwt.sign({ email: "harman" }, SECRET_KEY);
-    res.json({ token: token });
+    res.json({
+      token:
+        "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIxIn0.dSLlAINneWGMk8FYeL_xxH-IAuFaSgvh7Mjny1v9t-Q",
+    });
   }
 });
 
@@ -60,7 +63,7 @@ app.get("/user-profile", (req, res, next) => {
       res.status(401).json("Invalid token, cannot be decrypted");
     } else {
       res.status(200).json({
-        userEmail: 'harman@example.com',
+        userEmail: "harman@example.com",
         premiumStatus: true,
       });
     }
@@ -75,7 +78,7 @@ app.get("/payment-method", (req, res, next) => {
     } else {
       res.status(200).json({
         creditOrDebit: true,
-        cardNumber: '5849-7576-5689-4787',
+        cardNumber: "5849-7576-5689-4787",
       });
     }
   });
@@ -87,46 +90,45 @@ app.get("/upcoming-reserved-tickets", (req, res, next) => {
     if (err) {
       res.status(401).json("Invalid token, cannot be decrypted");
     } else {
-
       tickets = [
         {
           ticketNumber: "XRG392",
           moveTitle: "The Great Adventure",
           screen: 1,
           seat: "15",
-          playTime: 150  
+          playTime: 150,
         },
         {
           ticketNumber: "XRG392",
           moveTitle: "The Great Adventure",
           screen: 1,
           seat: "15",
-          playTime: 150  
+          playTime: 150,
         },
         {
           ticketNumber: "XRG392",
           moveTitle: "The Great Adventure",
           screen: 1,
           seat: "15",
-          playTime: 150  
+          playTime: 150,
         },
         {
           ticketNumber: "XRG392",
           moveTitle: "The Great Adventure",
           screen: 1,
           seat: "15",
-          playTime: 150  
+          playTime: 150,
         },
         {
           ticketNumber: "XRG392",
           moveTitle: "The Great Adventure",
           screen: 1,
           seat: "15",
-          playTime: 150  
+          playTime: 150,
         },
-      ]
+      ];
 
-      res.status(200).json({tickets});
+      res.status(200).json({ tickets });
     }
   });
 });
@@ -137,64 +139,76 @@ app.get("/remaining-cancelled-credits", (req, res, next) => {
     if (err) {
       res.status(401).json("Invalid token, cannot be decrypted");
     } else {
-
       remainingCancelledCredits = [
         {
-          amount: 14.00,
+          refundAmount: 14.0,
           expiryDate: "2024-11-17T18:23:00.000Z",
         },
         {
-          amount: 14.00,
+          refundAmount: 14.0,
           expiryDate: "2024-11-25T18:23:00.000Z",
         },
         {
-          amount: 14.00,
+          refundAmount: 14.0,
           expiryDate: "2024-11-26T18:23:00.000Z",
         },
         {
-          amount: 14.00,
+          refundAmount: 14.0,
           expiryDate: "2024-11-27T18:23:00.000Z",
         },
-        
-      ]
+      ];
 
-      res.status(200).json({remainingCancelledCredits});
+      res.status(200).json({ remainingCancelledCredits });
     }
   });
 });
 
-app.get("/showtimes", (req, res) => {
-  movies = [
-    {
-      id: 1,
-      title: "The Great Adventure",
-      image: "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
+app.post("/showtimes", (req, res) => {
+  res.status(200).json({
+    "November 1, 2024": {
+      "Screen 1": [
+        { time: "10:00", scheduleId: 1 },
+        { time: "14:00", scheduleId: 1 },
+      ],
+      "Screen 2": [{ time: "17:00", scheduleId: 2 }],
     },
-    {
-      id: 2,
-      title: "Mystery in the Woods",
-      image: "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
+    "November 3, 2024": {
+      "Screen 1": [{ time: "17:00", scheduleId: 1 }],
     },
-    {
-      id: 3,
-      title: "Space Odyssey",
-      image: "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
+    "November 4, 2024": {
+      "Screen 2": [{ time: "17:00", scheduleId: 2 }],
     },
-    {
-      id: 4,
-      title: "Romance Under the Stars",
-      image: "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
-    },
-    {
-      id: 5,
-      title: "The Last Samurai",
-      image: "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
-    },
-  ];
-
-  res.status(200).json({ movies });
+  });
 });
 
+app.post("/movie", (req, res) => {
+  res.status(200).json({
+    movieName: "xxx",
+    isMoviePublic: true,
+  });
+});
+
+app.post("/schedule", (req, res) => {
+  res.status(200).json({
+    movieName: "xxx",
+    price: 11.0,
+    isMoviePublic: true,
+    areNonPublicSeatsFilled: false,
+    showtime: "2024-10-10 10:00",
+    screenId: 2,
+    seats: [
+      [true, true, true, true, true, true, true, true, true, true],
+      [true, true, true, true, true, true, true, true, true, true],
+      [true, true, true, true, true, true, true, true, true, true],
+      [true, true, true, true, true, true, true, true, true, false],
+      [true, false, false, true, true, false, false, true, true, false],
+    ],
+  });
+});
+
+app.post("/reserve", (req, res) => {
+  res.status(200).json({});
+});
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

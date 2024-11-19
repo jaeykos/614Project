@@ -10,55 +10,81 @@ import {
 import { Link } from "react-router-dom";
 
 // Sample showtime data
-const showtimes = {
-  "December 8": {
-    "Screen A": ["10:00 AM", "12:00 PM", "2:00 PM"],
-    "Screen B": ["11:00 AM", "1:00 PM", "3:00 PM"],
-  },
-  "December 9": {
-    "Screen A": ["10:30 AM", "12:30 PM", "2:30 PM"],
-    "Screen B": ["11:30 AM", "1:30 PM", "3:30 PM"],
-  },
-};
+// const showtimes = {
+//   "December 8": {
+//     "Screen A": ["10:00 AM", "12:00 PM", "2:00 PM"],
+//     "Screen B": ["11:00 AM", "1:00 PM", "3:00 PM"],
+//   },
+//   "December 9": {
+//     "Screen A": ["10:30 AM", "12:30 PM", "2:30 PM"],
+//     "Screen B": ["11:30 AM", "1:30 PM", "3:30 PM"],
+//   },
+// };
 
 export default function MovieShowTime() {
   const { movieId } = useParams();
-  const {showTimes, setShowTimes} = useState([])
-  // const movieName = movie
-  //   ? decodeURIComponent(movie).replace(/-/g, " ")
-  //   : "Unknown Movie";
+  const [movieName, setMovieName] = useState("");
+  const [isMoviePublic, setIsMoviePublic] = useState("");
+  const [showTimes, setShowTimes] = useState(null);
   const [selectedDate, setSelectedDate] = useState("all");
+  const [filteredShowtimes, setFilteredShowtimes] = useState({});
 
-  const filteredShowtimes =
-    selectedDate === "all"
-      ? showtimes
-      : { [selectedDate]: showtimes[selectedDate] };
+  useEffect(() => {
+    if (showTimes) {
+      setFilteredShowtimes(
+        selectedDate === "all"
+          ? showTimes
+          : { [selectedDate]: showTimes[selectedDate] }
+      );
+    }
+  }, [selectedDate, showTimes]);
 
+  useEffect(() => {
+    const fetchShowtimes = async () => {
+      try {
+        const response = await fetch("/api/showtimes", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ movieId }),
+        });
+        const data = await response.json();
+        console.log("showtimes");
+        console.log(data);
+        setShowTimes(data);
+      } catch (error) {
+        console.error("Error fetching showtimes:", error);
+      }
+    };
 
-      useEffect(() => {
-        const fetchShowtimes = async () => {
-          try {
-            const response = await fetch(`/api/showtimes`,{
-              headers: { 'Content-Type': 'application/json', },
-              body: JSON.stringify({ movieId }),
-            }
-            );
-            const data = await response.json();
-            setShowTimes(data);
-          } catch (error) {
-            console.error("Error fetching showtimes:", error);
-          }
-        };
-        fetchShowtimes();
-      }, [movieId]);
-      
+    const getMovie = async () => {
+      try {
+        const response = await fetch("/api/movie", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ movieId }),
+        });
+        const data = await response.json();
+        console.log(data);
+        setMovieName(data.movieName);
+        setIsMoviePublic(data.isMoviePublic);
+      } catch (error) {
+        console.error("Error fetching movie data:", error);
+      }
+    };
+
+    getMovie();
+    fetchShowtimes();
+  }, [movieId]);
 
   return (
-    <div className=" bg-black text-white p-8">
-
+    <div className="bg-black text-white p-8">
       <div className="grid md:grid-cols-[400px,1fr] gap-8 max-w-6xl mx-auto sticky">
         <div className="space-y-4">
-          <h1 className="text-2xl  font-bold">{movieName}</h1>
+          <h1 className="text-2xl font-bold">{movieName}</h1>
           <div className="aspect-[2/3] h-3/5 relative border border-white hidden md:flex">
             <img
               src="/placeholder.svg"
@@ -95,14 +121,14 @@ export default function MovieShowTime() {
                   >
                     <div className="font-light">{screen}</div>
                     <div className="flex flex-wrap gap-4">
-                      {times.map((time, index) => (
+                      {times.map((item) => (
                         <Link
-                        to={`/movie/${encodeURIComponent(movieName)}/${screen.toLowerCase().replace(' ', '-')}/${date}/${encodeURIComponent(time)}`}
-                        key={index}
-                        className="px-4 py-2 border border-white rounded hover:bg-white hover:text-black transition-colors"
-                      >
-                        {time}
-                      </Link>
+                          to={`/schedule/${item.scheduleId}`}
+                          key={item.scheduleId}
+                          className="px-4 py-2 border border-white rounded hover:bg-white hover:text-black transition-colors"
+                        >
+                          {item.time}
+                        </Link>
                       ))}
                     </div>
                   </div>

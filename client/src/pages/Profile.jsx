@@ -1,77 +1,59 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import { useSharedState } from "../MyContext";
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 import CancelTicketDialog from "@/components/cancel-ticket-dialogue";
 
-// Mock data
-// const mockUserData = {
-//   email: "user@example.com",
-//   membership: "non-premium",
-//   paymentMethod: {
-//     type: "Credit",
-//     number: "xxxx xxxx xxxx 5234"
-//   },
-//   reservedTickets: [
-//     { id: "XX23XX", movie: "Title A", screen: "1", seat: "A1", playTime: "08/12/2023" },
-//     { id: "XX390X", movie: "Title B", screen: "1", seat: "A1", playTime: "09/12/2023" }
-//   ],
-//   cancelledCredits: [
-//     { amount: 7.00, expiryDate: "01/01/2024" },
-//     { amount: 8.00, expiryDate: "02/01/2024" }
-//   ]
-// }
-
-
 export default function Component() {
-  const [showPasswordChange, setShowPasswordChange] = useState(false)
-  const [showPaymentUpdate, setShowPaymentUpdate] = useState(false)
-  const [newPassword, setNewPassword] = useState("")
-  const [cardType, setCardType] = useState("credit")
-  const [cardNumber, setCardNumber] = useState("")
-  const [selectedTicket, setSelectedTicket] = useState(null)
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [showPaymentUpdate, setShowPaymentUpdate] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [cardType, setCardType] = useState("credit");
+  const [cardNumber, setCardNumber] = useState("");
+  const [selectedTicket, setSelectedTicket] = useState(null);
   const [tickets, setTickets] = useState([]);
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
-  const { isUserPremium, setIsUserPremium } = useSharedState();
+  const { membershipStatus, setMembershipStatus } =
+    useSharedState("NON_PREMIUM");
   const [userEmail, setUserEmail] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [creditOrDebit, setCreditOrDebit] = useState(false);
-  const [remainingCancelledCredits, setRemainingCancelledCredits] = useState([]);
-  const [currentCardNumber, setCurrentCardNumber] = useState("")
+  const [remainingCancelledCredits, setRemainingCancelledCredits] = useState(
+    []
+  );
+  const [currentCardNumber, setCurrentCardNumber] = useState("");
 
   const handlePasswordChange = (e) => {
-    e.preventDefault()
-    console.log("Changing password to:", newPassword)
-    setShowPasswordChange(false)
-    setNewPassword("")
-  }
+    e.preventDefault();
+    console.log("Changing password to:", newPassword);
+    setShowPasswordChange(false);
+    setNewPassword("");
+  };
 
   const handlePaymentUpdate = (e) => {
-    e.preventDefault()
-    console.log("Updating payment method:", { cardType, cardNumber })
-    setShowPaymentUpdate(false)
-    setCardNumber("")
-  }
+    e.preventDefault();
+    console.log("Updating payment method:", { cardType, cardNumber });
+    setShowPaymentUpdate(false);
+    setCardNumber("");
+  };
 
   const handleCancelTicket = (ticketId) => {
     setSelectedTicket(ticketId);
     setIsDialogOpen(true);
   };
-  
+
   const handleConfirmCancelTicket = () => {
     //Implementation to handle ticket cancellation
     console.log("Cancelling ticket:", selectedTicket);
   };
 
-
   useEffect(() => {
     const getUserProfile = async () => {
       try {
-        const response = await fetch("/api/user-profile", {
+        const response = await fetch("http://localhost:8080/user", {
           headers: {
             token: localStorage.getItem("token"),
           },
@@ -82,17 +64,15 @@ export default function Component() {
         }
 
         const data = await response.json();
-        setUserEmail(data.userEmail || "");
-        setIsUserPremium(data.premiumStatus);
+        setUserEmail(data.email || "");
+        setMembershipStatus(data.premiumStatus);
 
         console.log(data);
       } catch (error) {
-        setError("Error fetching data");
         setIsLoggedIn(false);
         console.log(error);
       }
     };
-
 
     const getPaymentMethod = async () => {
       try {
@@ -109,7 +89,7 @@ export default function Component() {
         const data = await response.json();
         setCreditOrDebit(data.creditOrDebit || "");
         setCardNumber(data.cardNumber);
-        
+
         console.log(data);
       } catch (error) {
         setError("Error fetching data");
@@ -158,9 +138,6 @@ export default function Component() {
     }
   }, [isLoggedIn]);
 
-
-
-
   return (
     <div className="min-h-screen bg-black text-white p-8">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -168,19 +145,22 @@ export default function Component() {
         <div className="space-y-4">
           <h1 className="text-2xl font-light">Profile</h1>
           <p>Email: {userEmail}</p>
-          
+
           {/* Password Change Section */}
           <div className="space-y-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowPasswordChange(!showPasswordChange)}
               className="border-white text-white hover:bg-white hover:text-black"
             >
-              Change Password 
+              Change Password
             </Button>
-            
+
             {showPasswordChange && (
-              <form onSubmit={handlePasswordChange} className="space-y-4 border border-zinc-500 p-4 rounded">
+              <form
+                onSubmit={handlePasswordChange}
+                className="space-y-4 border border-zinc-500 p-4 rounded"
+              >
                 <div className="space-y-2">
                   <Label htmlFor="new-password">new password:</Label>
                   <Input
@@ -191,7 +171,7 @@ export default function Component() {
                     className="bg-transparent border-white text-white"
                   />
                 </div>
-                <Button 
+                <Button
                   type="submit"
                   className="bg-transparent border border-white text-white hover:bg-white hover:text-black"
                 >
@@ -204,23 +184,33 @@ export default function Component() {
 
         {/* Premium Membership Section */}
         <div className="space-y-4">
-          {
-            isUserPremium?<></>:<div className="border border-white p-4 rounded">
-            <p>Get exclusive access to premium screenings and early ticket bookings with our premium membership!</p>
-          </div>
-          }
-          
+          {membershipStatus === "PREIMUM" ? (
+            <></>
+          ) : (
+            <div className="border border-white p-4 rounded">
+              <p>
+                Get exclusive access to premium screenings and early ticket
+                bookings with our premium membership!
+              </p>
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
-            <p>Membership Status: {isUserPremium?<>Premium</>:<>Not Precmium</>}</p>
-            
-            {
-            isUserPremium?<></>:
-            <Button 
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-black"
-            >
-              Upgrade to Premium Membership
-            </Button>}
+            <p>
+              Membership Status:{" "}
+              {membershipStatus === "PREIMUM" ? <>Premium</> : <>Not Premium</>}
+            </p>
+
+            {membershipStatus === "PREIMUM" ? (
+              <></>
+            ) : (
+              <Button
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-black"
+              >
+                Upgrade to Premium Membership
+              </Button>
+            )}
           </div>
         </div>
 
@@ -229,9 +219,11 @@ export default function Component() {
           <div className="flex flex-col items-start gap-3 justify-between">
             <div>
               <p className="text-lg">Payment Method</p>
-              <p className="text-md">{cardType} card ending with {cardNumber.slice(-3)}</p>
+              <p className="text-md">
+                {cardType} card ending with {cardNumber.slice(-3)}
+              </p>
             </div>
-            <Button 
+            <Button
               variant="outline"
               onClick={() => setShowPaymentUpdate(!showPaymentUpdate)}
               className="border-white text-white hover:bg-white hover:text-black"
@@ -241,16 +233,31 @@ export default function Component() {
           </div>
 
           {showPaymentUpdate && (
-            <form onSubmit={handlePaymentUpdate} className="space-y-4 border border-zinc-500 p-4 rounded">
+            <form
+              onSubmit={handlePaymentUpdate}
+              className="space-y-4 border border-zinc-500 p-4 rounded"
+            >
               <div className="space-y-4">
                 <Label>Payment Method</Label>
-                <RadioGroup value={cardType} onValueChange={setCardType} className="flex gap-4">
+                <RadioGroup
+                  value={cardType}
+                  onValueChange={setCardType}
+                  className="flex gap-4"
+                >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="credit" id="credit" className="border-white text-white" />
+                    <RadioGroupItem
+                      value="credit"
+                      id="credit"
+                      className="border-white text-white"
+                    />
                     <Label htmlFor="credit">Credit</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="debit" id="debit" className="border-white text-white" />
+                    <RadioGroupItem
+                      value="debit"
+                      id="debit"
+                      className="border-white text-white"
+                    />
                     <Label htmlFor="debit">Debit</Label>
                   </div>
                 </RadioGroup>
@@ -266,7 +273,7 @@ export default function Component() {
                 />
               </div>
 
-              <Button 
+              <Button
                 type="submit"
                 className="bg-transparent border border-white text-white hover:bg-white hover:text-black"
               >
@@ -278,7 +285,9 @@ export default function Component() {
 
         {/* Reserved Tickets Section */}
         <div className="space-y-4">
-          <h2 className="text-xl font-light">Reserved Tickets for Upcoming Movies</h2>
+          <h2 className="text-xl font-light">
+            Reserved Tickets for Upcoming Movies
+          </h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -300,7 +309,7 @@ export default function Component() {
                     <td className="p-2 text-center">{ticket.seat}</td>
                     <td className="p-2 text-center">{ticket.playTime}</td>
                     <td className="p-2">
-                      <Button 
+                      <Button
                         onClick={() => handleCancelTicket(ticket.id)}
                         variant="outline"
                         className="border-white text-white hover:bg-white hover:text-black"
@@ -316,7 +325,7 @@ export default function Component() {
         </div>
 
         {/* Cancelled Credit Section */}
-        <div className="space-y-4">
+        <div className="space-y-4 pb-10">
           <h2 className="text-xl font-light">Remaining Cancelled Credit</h2>
           <div className="max-w-xs">
             <table className="w-full text-sm">
@@ -329,14 +338,19 @@ export default function Component() {
               <tbody>
                 {remainingCancelledCredits.map((credit, index) => (
                   <tr key={index} className="border-b border-white/20">
-                    <td className="p-2">{credit.expiryDate.split('T')[0]}</td>
-                    <td className="p-2 text-right">${credit.amount.toFixed(2)}</td>
+                    <td className="p-2">{credit.expiryDate.split("T")[0]}</td>
+                    <td className="p-2 text-right">
+                      ${credit.refundAmount.toFixed(2)}
+                    </td>
                   </tr>
                 ))}
                 <tr className="font-bold">
                   <td className="p-2">Total:</td>
                   <td className="p-2 text-right">
-                    ${remainingCancelledCredits.reduce((sum, credit) => sum + credit.amount, 0).toFixed(2)}
+                    $
+                    {remainingCancelledCredits
+                      .reduce((sum, credit) => sum + credit.amount, 0)
+                      .toFixed(2)}
                   </td>
                 </tr>
               </tbody>
@@ -347,18 +361,18 @@ export default function Component() {
 
       {/* Cancel Ticket Dialog */}
       <CancelTicketDialog
-  isOpen={isDialogOpen}
-  onClose={() => {
-    setIsDialogOpen(false);
-    setSelectedTicket(null);
-  }}
-  isPremium={isUserPremium === true}
-  onConfirm={() => {
-    handleConfirmCancelTicket();
-    setIsDialogOpen(false);
-    setSelectedTicket(null);
-  }}
-/>
+        isOpen={isDialogOpen}
+        onClose={() => {
+          setIsDialogOpen(false);
+          setSelectedTicket(null);
+        }}
+        isPremium={membershipStatus === "PREIUM"}
+        onConfirm={() => {
+          handleConfirmCancelTicket();
+          setIsDialogOpen(false);
+          setSelectedTicket(null);
+        }}
+      />
     </div>
-  )
+  );
 }
