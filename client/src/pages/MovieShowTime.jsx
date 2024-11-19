@@ -35,20 +35,23 @@ export default function MovieShowTime() {
       : { [selectedDate]: showtimes[selectedDate] };
 
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/public-movies");
-        const data = await response.json();
-        setMovies(data.movies);
-
-        console.log(movies);
-      } catch (error) {
-        console.error("Error fetching movies:", error);
-      }
-    };
-    fetchData();
-  }, []);
+      useEffect(() => {
+        const fetchShowtimes = async () => {
+          try {
+            const response = await fetch(`/api/showtimes`,{
+              headers: { 'Content-Type': 'application/json', },
+              body: JSON.stringify({ movieId }),
+            }
+            );
+            const data = await response.json();
+            setShowTimes(data);
+          } catch (error) {
+            console.error("Error fetching showtimes:", error);
+          }
+        };
+        fetchShowtimes();
+      }, [movieId]);
+      
 
   return (
     <div className=" bg-black text-white p-8">

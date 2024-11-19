@@ -12,7 +12,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (isLoggedIn) {
-      fetch("http://localhost:3000/user-profile", {
+      fetch("/api/user-profile", {
         headers: {
           token: localStorage.getItem("token"),
         },

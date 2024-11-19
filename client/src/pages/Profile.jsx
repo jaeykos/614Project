@@ -71,7 +71,7 @@ export default function Component() {
   useEffect(() => {
     const getUserProfile = async () => {
       try {
-        const response = await fetch("http://localhost:3000/user-profile", {
+        const response = await fetch("/api/user-profile", {
           headers: {
             token: localStorage.getItem("token"),
           },
@@ -96,7 +96,7 @@ export default function Component() {
 
     const getPaymentMethod = async () => {
       try {
-        const response = await fetch("http://localhost:3000/payment-method", {
+        const response = await fetch("/api/payment-method", {
           headers: {
             token: localStorage.getItem("token"),
           },
@@ -120,7 +120,7 @@ export default function Component() {
 
     const getTickets = async () => {
       try {
-        const response = await fetch("http://localhost:3000/upcoming-reserved-tickets", {
+        const response = await fetch("/api/upcoming-reserved-tickets", {
           headers: {
             token: localStorage.getItem("token"),
           },
@@ -136,7 +136,7 @@ export default function Component() {
 
     const getRemainingCancelledCredits = async () => {
       try {
-        const response = await fetch("http://localhost:3000/remaining-cancelled-credits", {
+        const response = await fetch("/api/remaining-cancelled-credits", {
           headers: {
             token: localStorage.getItem("token"),
           },

@@ -28,12 +28,11 @@ export default function LoginPopup() {
     console.log("Login attempt with:", { email, password });
 
     var responseStatus;
-    fetch("http://localhost:3000/login", {
+    fetch("api/login", {
       method: "post",
       body: JSON.stringify({ email: email, password: password }),
       headers: {
         "Content-Type": "application/json",
-
       }, // Content-Type is in quotes because it has a '-'
     })
       .then((response) => {
