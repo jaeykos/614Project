@@ -9,18 +9,6 @@ import {
 } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 
-// Sample showtime data
-// const showtimes = {
-//   "December 8": {
-//     "Screen A": ["10:00 AM", "12:00 PM", "2:00 PM"],
-//     "Screen B": ["11:00 AM", "1:00 PM", "3:00 PM"],
-//   },
-//   "December 9": {
-//     "Screen A": ["10:30 AM", "12:30 PM", "2:30 PM"],
-//     "Screen B": ["11:30 AM", "1:30 PM", "3:30 PM"],
-//   },
-// };
-
 export default function MovieShowTime() {
   const { movieId } = useParams();
   const [movieName, setMovieName] = useState("");
@@ -69,7 +57,6 @@ export default function MovieShowTime() {
         setIsMoviePublic(data.isMoviePublic);
       } catch (error) {
         console.error("Error fetching movie data:", error);
-        
       }
     };
 
@@ -100,9 +87,15 @@ export default function MovieShowTime() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="December 8">December 8</SelectItem>
-                <SelectItem value="December 9">December 9</SelectItem>
+                {" "}
+                <SelectItem value="all">All</SelectItem>{" "}
+                {showTimes &&
+                  Object.keys(showTimes).map((date) => (
+                    <SelectItem key={date} value={date}>
+                      {" "}
+                      {date}{" "}
+                    </SelectItem>
+                  ))}{" "}
               </SelectContent>
             </Select>
           </div>

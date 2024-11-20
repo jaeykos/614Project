@@ -36,25 +36,27 @@ export default function LoginPopup() {
     })
       .then((response) => {
         responseStatus = response.status;
-        console.log(response)
+        console.log(response);
         return response.text();
       })
       .then((responsePayload) => {
-        console.log("if resonse is 200")
+        console.log("if resonse is 200");
         if (responseStatus === 200) {
-          console.log("response is 200")
-          console.log(responsePayload)
+          console.log("response is 200");
+          console.log(responsePayload);
           localStorage.setItem("token", responsePayload);
           setIsLoggedIn(true);
+          console.log(`isLoggedin: ${isLoggedIn}`);
+
           setIsOpen(false);
         } else {
           alert("Log in not successful");
         }
-      })
-      // .catch((err) => {
-      //   setIsLoggedIn(false);
-      //   console.log(err);
-      // });
+      });
+    // .catch((err) => {
+    //   setIsLoggedIn(false);
+    //   console.log(err);
+    // });
   };
 
   return (

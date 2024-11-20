@@ -6,8 +6,8 @@ import LoginPopup from "./login-popup";
 
 export default function Navbar() {
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
-  const [membershipStatus, setMembershipStatus]   = useState("");
-  const [membershipExpiryDate, setMembershipExpiryDate ]  = useState("");
+  const [membershipStatus, setMembershipStatus] = useState("");
+  const [membershipExpiryDate, setMembershipExpiryDate] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [error, setError] = useState("");
 
@@ -25,13 +25,13 @@ export default function Navbar() {
           return response.json();
         })
         .then((data) => {
-          console.log("line right before settnig logged in as true")
+          // console.log("line right before settnig logged in as true")
           setIsLoggedIn(true);
           setUserEmail(data.email || "");
           setMembershipStatus(data.membershipStatus);
-          setMembershipExpiryDate(data.membershipExpiryDate)
+          setMembershipExpiryDate(data.membershipExpiryDate);
 
-          console.log(data);
+          // console.log(data);
         })
         .catch((error) => {
           setError("Error fetching data");
@@ -50,15 +50,15 @@ export default function Navbar() {
         AcmePlex
       </Link>
 
-      
-
       <div className="RightSideWrapper self-center items-center flex flex-row gap-6 ">
         {isLoggedIn ? (
-          <UserIconDropdown email={userEmail} membershipStatus = {membershipStatus} />
+          <UserIconDropdown
+            email={userEmail}
+            membershipStatus={membershipStatus}
+          />
         ) : (
           <div className="flex flex-row">
-            
-            <LoginPopup/>
+            <LoginPopup />
             <Link
               className="flex   items-center  px-2 text-zinc-200 hover:text-zinc-600 transition  ease-in-out"
               to="/sign-up"

@@ -13,16 +13,16 @@ import { User, Crown, LogOut } from "lucide-react";
 import { useSharedState } from "../MyContext";
 
 export default function UserIconDropdown({ email, membershipStatus }) {
-  const { isLoggedIn, setIsLoggedIn } = useSharedState();
+  const { setIsLoggedIn } = useSharedState();
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const firstInitial = email.charAt(0).toUpperCase();
 
   const handleLogout = () => {
-    if (isLoggedIn) {
-      localStorage.removeItem("token");
-      window.location.reload(true); // Refreshes the current page, same as clicking the refresh button in your browser
-    }
+    console.log("logout clicked");
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+    window.location.reload(true);
   };
 
   const navigate = useNavigate();
@@ -52,18 +52,24 @@ export default function UserIconDropdown({ email, membershipStatus }) {
             View profile & tickets
           </span>
         </DropdownMenuItem>
-        {membershipStatus == "PREMIUM"?<DropdownMenuItem className="focus:bg-zinc-700 focus:text-zinc-100">
-          <Crown className="mr-2 h-4 w-4" />
-          <span onClick={() => navigate("/profile")}>
-            Become premium member
-          </span>
-        </DropdownMenuItem>:<></>}
-        
+        {membershipStatus == "NON_PREMIUM" ? (
+          <DropdownMenuItem className="focus:bg-zinc-700 focus:text-zinc-100">
+            <Crown className="mr-2 h-4 w-4" />
+            <span onClick={() => navigate("/profile")}>
+              Become premium member
+            </span>
+          </DropdownMenuItem>
+        ) : (
+          <></>
+        )}
 
         <DropdownMenuSeparator className="bg-zinc-700" />
-        <DropdownMenuItem className="focus:bg-zinc-700 focus:text-zinc-100">
+        <DropdownMenuItem
+          onClick={handleLogout}
+          className="focus:bg-zinc-700 focus:text-zinc-100"
+        >
           <LogOut className="mr-2 h-4 w-4" />
-          <span onClick={handleLogout}>Log out</span>
+          <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

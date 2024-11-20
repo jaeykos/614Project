@@ -24,7 +24,9 @@ import {
 const Landing = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { isLoggedIn } = useSharedState();
+  const { isLoggedIn, setIsLoggedIn } = useSharedState();
+  const [publicMovies, setPublicMovies] = useState([]);
+  const [nonPublicMovies, setNonPublicMovies] = useState([]);
   const [movies, setMovies] = useState([]);
 
   const [error, setError] = useState("");
@@ -33,23 +35,54 @@ const Landing = () => {
   const filteredMovies = movies.filter((movie) =>
     movie.movieName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  const getPublicMovies = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/public-movies");
+      const data = await response.json();
+      console.log("public movies:", data);
+      return data;
+    } catch (error) {
+      console.error("Error fetching movies:", error);
+      return [];
+    }
+  };
+  const getNonPublicMovies = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/non-public-movies", {
+        headers: { token: localStorage.getItem("token") },
+      });
+      const data = await response.json();
+      console.log("non public movies:", data);
+      setNonPublicMovies(data);
+      return data;
+    } catch (error) {
+      console.error("Error fetching non-public movies:", error);
+      return [];
+    }
+  };
+  const getMovies = async () => {
+    let movies = [];
+    if (localStorage.getItem("token")) {
+      console.log("token retrieved");
+      const publicMovies = await getPublicMovies();
+      const nonPublicMovies = await getNonPublicMovies();
+      movies = [...nonPublicMovies, ...publicMovies];
+    } else {
+      console.log("token not retrieved");
+      const publicMovies = await getPublicMovies();
+      movies = publicMovies;
+    }
+    return movies;
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/public-movies");
-        console.log(response)
-        const data = await response.json();
-        console.log("movies:");
-        console.log(data);
-        setMovies(data);
-
-      } catch (error) {
-        console.error("Error fetching movies:", error);
-      }
+    const fetchAndSetMovies = async () => {
+      const moviesData = await getMovies();
+      setMovies(moviesData);
+      console.log("all movies:", moviesData);
     };
-    fetchData();
-  }, []);
+    fetchAndSetMovies();
+  }, [isLoggedIn]);
 
   return (
     <>
@@ -82,11 +115,7 @@ const Landing = () => {
             <CarouselContent>
               {filteredMovies.map((movie) => (
                 <CarouselItem key={movie.movieId} className="md:basis-1/3">
-                  <Link
-                    to={`/movie/${encodeURIComponent(
-                      movie.movieId
-                    )}`}
-                  >
+                  <Link to={`/movie/${encodeURIComponent(movie.movieId)}`}>
                     <div className="p-1">
                       <div className="space-y-2">
                         <div className="aspect-[3/4] relative border border-white">
@@ -99,6 +128,16 @@ const Landing = () => {
                         <h3 className="text-center text-zinc-200">
                           {movie.movieName}
                         </h3>
+                        {nonPublicMovies.some(
+                          (nonPublicMovie) =>
+                            nonPublicMovie.movieId === movie.movieId
+                        ) ? (
+                          <h3 className="text-center text-zinc-200 italic text-sm">
+                            Premium
+                          </h3>
+                        ) : (
+                          <></>
+                        )}
                       </div>
                     </div>
                   </Link>

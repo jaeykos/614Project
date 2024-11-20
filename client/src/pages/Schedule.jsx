@@ -154,15 +154,13 @@ export default function Schedule() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+      <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
         {/* Seat Selection */}
         <div className="space-y-6 flex flex-col align-middle items-center">
           <h2 className="text-xl font-light mb-4">Select Seat</h2>
           <div className="relative">
             {/* Screen */}
-            <div className="w-full h-2 bg-white mb-8 rounded opacity-50">
-              <div className="text-center text-sm pt-2 mb-2">Screen</div>
-            </div>
+            <div className="w-full h-2 bg-white mb-8 rounded opacity-50"></div>
 
             {/* Seats */}
             {isLoading ? (
@@ -172,7 +170,6 @@ export default function Schedule() {
                 <div className="space-y-2">
                   {seats.map((row, rowIndex) => (
                     <div key={rowIndex} className="flex items-center gap-4">
-                      <div className="w-8 text-center">{rowIndex + 1}</div>
                       <div className="flex gap-2">
                         {row.map((isOccupied, seatIndex) => (
                           <button
@@ -182,7 +179,7 @@ export default function Schedule() {
                               handleSeatToggle(rowIndex + 1, seatIndex + 1)
                             }
                             disabled={isOccupied}
-                            className={`w-8 h-8 border rounded-sm flex items-center justify-center transition-colors ${
+                            className={`w-10 h-10 border rounded-sm flex items-center justify-center transition-colors ${
                               isOccupied
                                 ? "bg-gray-500 cursor-not-allowed"
                                 : selectedSeats.includes(
@@ -191,21 +188,13 @@ export default function Schedule() {
                                 ? "bg-white text-black"
                                 : "border-white hover:bg-white/10"
                             }`}
-                          />
+                          >
+                            {`${rowIndex * 10 + seatIndex + 1}`}
+                          </button>
                         ))}
                       </div>
                     </div>
                   ))}
-                  <div className="flex items-center gap-4 mt-4">
-                    <div className="w-8" />
-                    <div className="flex gap-2">
-                      {seats[0].map((_, index) => (
-                        <div key={index} className="w-8 text-center text-sm">
-                          {index + 1}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               )
             )}

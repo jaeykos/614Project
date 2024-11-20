@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import { useSharedState } from "../MyContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,9 +17,8 @@ export default function Component() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [tickets, setTickets] = useState([]);
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
-  const { membershipStatus, setMembershipStatus } =
-    useSharedState("NON_PREMIUM");
-  const { membershipExpiryDate, setMembershipExpiryDate } = ""
+  const [membershipStatus, setMembershipStatus] = useState("NON_PREMIUM");
+  const [membershipExpiryDate, setMembershipExpiryDate] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [creditOrDebit, setCreditOrDebit] = useState(false);
@@ -27,6 +26,14 @@ export default function Component() {
     []
   );
   const [currentCardNumber, setCurrentCardNumber] = useState("");
+
+  // useLayoutEffect(() => {
+  //   if (localStorage.getItem("token")) {
+  //     setIsLoggedIn(true);
+  //   } else {
+  //     setIsLoggedIn(false);
+  //   }
+  // }, []);
 
   const navigate = useNavigate();
   const handlePasswordChange = (e) => {
@@ -54,97 +61,87 @@ export default function Component() {
   };
 
   useEffect(() => {
-    const getUserProfile = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/user", {
-          headers: {
-            token: localStorage.getItem("token"),
-          },
-        });
+    const fetchAllData = async () => {
+      if (localStorage.getItem("token")) {
+        setIsLoggedIn(true);
+        console.log("token retrieved");
 
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-
-        const data = await response.json();
-        setUserEmail(data.email || "");
-        setCardType(data.paymentMethod)
-        setCardNumber(data.cardNumber)
-        setMembershipStatus(data.membershipStatus);
-        setMembershipExpiryDate(data.setMembershipExpiryDate)
-
-        console.log(data);
-      } catch (error) {
+        await getUserProfile();
+        await getTickets();
+        await getRemainingCancelledCredits();
+      } else {
         setIsLoggedIn(false);
-        
-        navigate("/profile");
-        console.log(error);
+        console.log("token not retrieved");
       }
     };
 
-    const getPaymentMethod = async () => {
-      try {
-        const response = await fetch("/api/payment-method", {
-          headers: {
-            token: localStorage.getItem("token"),
-          },
-        });
+    fetchAllData();
+  }, []);
 
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
+  const getUserProfile = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/user", {
+        headers: {
+          token: localStorage.getItem("token"),
+        },
+      });
 
-        const data = await response.json();
-        setCreditOrDebit(data.creditOrDebit || "");
-        setCardNumber(data.cardNumber);
-
-        console.log(data);
-      } catch (error) {
-        setError("Error fetching data");
-        setIsLoggedIn(false);
-        console.log(error);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
       }
-    };
 
-    const getTickets = async () => {
-      try {
-        const response = await fetch("/api/upcoming-reserved-tickets", {
-          headers: {
-            token: localStorage.getItem("token"),
-          },
-        });
-        const data = await response.json();
-        setTickets(data.tickets);
+      const data = await response.json();
+      setUserEmail(data.email || "");
+      setCardType(data.paymentMethod);
+      setCardNumber(data.cardNumber);
+      setMembershipStatus(data.membershipStatus);
+      setMembershipExpiryDate(data.setMembershipExpiryDate);
 
-        console.log(tickets);
-      } catch (error) {
-        console.error("Error fetching movies:", error);
-      }
-    };
-
-    const getRemainingCancelledCredits = async () => {
-      try {
-        const response = await fetch("/api/remaining-cancelled-credits", {
-          headers: {
-            token: localStorage.getItem("token"),
-          },
-        });
-        const data = await response.json();
-        setRemainingCancelledCredits(data.remainingCancelledCredits);
-
-        console.log(tickets);1
-      } catch (error) {
-        console.error("Error fetching movies:", error);
-      }
-    };
-
-    if (isLoggedIn) {
-      getUserProfile();
-      getTickets();
-      getPaymentMethod();
-      getRemainingCancelledCredits();
+      console.log(data);
+    } catch (error) {
+      setIsLoggedIn(false);
+      navigate("/profile");
+      console.log(error);
     }
-  }, [isLoggedIn]);
+  };
+
+  const getTickets = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:8080/upcoming-reserved-tickets",
+        {
+          headers: {
+            token: localStorage.getItem("token"),
+          },
+        }
+      );
+
+      const data = await response.json();
+      setTickets(data);
+      console.log("right before tickets");
+      console.log(data);
+    } catch (error) {
+      console.error("Error fetching movies:", error);
+    }
+  };
+
+  const getRemainingCancelledCredits = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/remaining-credits", {
+        headers: {
+          token: localStorage.getItem("token"),
+        },
+      });
+      const data = await response.json();
+      console.log(`fetched refund data:  ${remainingCancelledCredits}`);
+
+      setRemainingCancelledCredits(data);
+
+      console.log(data);
+    } catch (error) {
+      console.error("Error fetching movies:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white p-8">
@@ -192,38 +189,41 @@ export default function Component() {
 
         {/* Premium Membership Section */}
         <div className="space-y-4">
-
           <div className="flex flex-col items-start justify-between">
             <div className="flex flex-col">
-
-            <p>
-              Membership Status:{" "}
-              {membershipStatus === "PREIMUM" ? <>Premium</> : <>Not Premium</>}
-            </p>
-
-            {membershipStatus === "PREIMUM" ? (
-            <></>
-          ) : (
-            <div className="border border-white text-md p-4 rounded mt-2">
-              <p className="mb-2">
-                Become a premium member to get the premium benefits!
-              </p>
-              <p className="ml-4">
-                 - Browse non-public movies before anyone!
-              </p>
-              <p className="ml-4">
-                 - Only premium users can book seats for non-public movies before it becomes public.
-              </p>
-              <p className="ml-4">
-                 - Zero administration fee for cancelling tickets. 
+              <p>
+                Membership Status:{" "}
+                {membershipStatus === "PREIMUM" ? (
+                  <>Premium</>
+                ) : (
+                  <>Not Premium</>
+                )}
               </p>
 
-              <p className="text-sm mt-4">
-                * You only pay one time fee of $25 dollars for one year premium membership. No recurring fees!  
-              </p>
-              
-            </div>
-          )}
+              {membershipStatus === "PREIMUM" ? (
+                <></>
+              ) : (
+                <div className="border border-white text-md p-4 rounded mt-2">
+                  <p className="mb-2">
+                    Become a premium member to get the premium benefits!
+                  </p>
+                  <p className="ml-4">
+                    - Browse non-public movies before anyone!
+                  </p>
+                  <p className="ml-4">
+                    - Only premium users can book seats for non-public movies
+                    before it becomes public.
+                  </p>
+                  <p className="ml-4">
+                    - Zero administration fee for cancelling tickets.
+                  </p>
+
+                  <p className="text-sm mt-4">
+                    * You only pay one time fee of $25 dollars for one year
+                    premium membership. No recurring fees!
+                  </p>
+                </div>
+              )}
             </div>
 
             {membershipStatus === "PREIMUM" ? (
@@ -243,7 +243,10 @@ export default function Component() {
         <div className="space-y-4">
           <div className="flex flex-col  items-start gap-3 justify-between">
             <div className="flex flex-row items-end">
-              <p className="text-lg">Payment Method: {cardType.toLowerCase()} card ending with {cardNumber.slice(-3)}</p>
+              <p className="text-lg">
+                Payment Method: {cardType.toLowerCase()} card ending with{" "}
+                {cardNumber.slice(-3)}
+              </p>
             </div>
             <Button
               variant="outline"
@@ -306,7 +309,7 @@ export default function Component() {
         </div>
 
         {/* Reserved Tickets Section */}
-        {/* <div className="space-y-4">
+        <div className="space-y-4">
           <h2 className="text-xl font-light">
             Reserved Tickets for Upcoming Movies
           </h2>
@@ -325,11 +328,25 @@ export default function Component() {
               <tbody>
                 {tickets.map((ticket) => (
                   <tr key={ticket.id}>
-                    <td className="p-2 text-center">{ticket.ticketNumber}</td>
-                    <td className="p-2 text-center">{ticket.moveTitle}</td>
-                    <td className="p-2 text-center">{ticket.screen}</td>
-                    <td className="p-2 text-center">{ticket.seat}</td>
-                    <td className="p-2 text-center">{ticket.playTime}</td>
+                    <td className="p-2 text-center">{ticket.ticketId}</td>
+                    <td className="p-2 text-center">{ticket.movieName}</td>
+                    <td className="p-2 text-center">
+                      Screen {ticket.screenNumber}
+                    </td>
+                    <td className="p-2 text-center"> {ticket.seatNumber}</td>
+                    <td className="p-2 text-center">
+                      {new Date(ticket.startTime)
+                        .toLocaleString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                          timeZone: "UTC",
+                        })
+                        .replace(",", "")}
+                    </td>
                     <td className="p-2">
                       <Button
                         onClick={() => handleCancelTicket(ticket.id)}
@@ -344,10 +361,10 @@ export default function Component() {
               </tbody>
             </table>
           </div>
-        </div> */}
+        </div>
 
         {/* Cancelled Credit Section */}
-        {/* <div className="space-y-4 pb-10">
+        <div className="space-y-4 pb-10">
           <h2 className="text-xl font-light">Remaining Cancelled Credit</h2>
           <div className="max-w-xs">
             <table className="w-full text-sm">
@@ -360,29 +377,36 @@ export default function Component() {
               <tbody>
                 {remainingCancelledCredits.map((credit, index) => (
                   <tr key={index} className="border-b border-white/20">
-                    <td className="p-2">{credit.expiryDate.split("T")[0]}</td>
+                    <td className="p-2">
+                      {new Date(credit.expiryDate).toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit",
+                        timeZone: "UTC",
+                      })}
+                    </td>
                     <td className="p-2 text-right">
                       ${credit.refundAmount.toFixed(2)}
                     </td>
                   </tr>
                 ))}
                 <tr className="font-bold">
-                  <td className="p-2">Total:</td>
+                  <td className="p-2">Total</td>
                   <td className="p-2 text-right">
                     $
                     {remainingCancelledCredits
-                      .reduce((sum, credit) => sum + credit.amount, 0)
+                      .reduce((sum, credit) => sum + credit.refundAmount, 0)
                       .toFixed(2)}
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-        </div> */}
+        </div>
       </div>
 
       {/* Cancel Ticket Dialog */}
-      {/* <CancelTicketDialog
+      <CancelTicketDialog
         isOpen={isDialogOpen}
         onClose={() => {
           setIsDialogOpen(false);
@@ -394,7 +418,7 @@ export default function Component() {
           setIsDialogOpen(false);
           setSelectedTicket(null);
         }}
-      /> */}
+      />
     </div>
   );
 }
