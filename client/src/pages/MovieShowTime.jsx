@@ -29,8 +29,10 @@ export default function MovieShowTime() {
 
   useEffect(() => {
     const fetchShowtimes = async () => {
+      if (!movieId) return; // Add this line to ensure movieId is not null
+      console.log(`http://localhost:8080/showtimes/${movieId}`);
       try {
-        const response = await fetch(`/api/showtimes/${movieId}`, {
+        const response = await fetch(`http://localhost:8080/showtimes/${movieId}`, {
           headers: {
             token: localStorage.getItem("token"),
           },
@@ -44,9 +46,10 @@ export default function MovieShowTime() {
       }
     };
 
+
     const getMovie = async () => {
       try {
-        const response = await fetch(`/api/movie${movieId}`, {
+        const response = await fetch(`http://localhost:8080/movie/${movieId}`, {
           headers: {
             token: localStorage.getItem("token"),
           },
@@ -65,6 +68,7 @@ export default function MovieShowTime() {
   }, [movieId]);
 
   return (
+
     <div className="bg-black text-white p-8">
       <div className="grid md:grid-cols-[400px,1fr] gap-8 max-w-6xl mx-auto sticky">
         <div className="space-y-4">
@@ -100,7 +104,7 @@ export default function MovieShowTime() {
             </Select>
           </div>
 
-          {Object.entries(filteredShowtimes).map(([date, screens]) => (
+          {filteredShowtimes?Object.entries(filteredShowtimes).map(([date, screens]) => (
             <div key={date} className="space-y-6">
               <h2 className="text-xl font-light">{date}</h2>
               <div className="space-y-4">
@@ -109,7 +113,7 @@ export default function MovieShowTime() {
                     key={screen}
                     className="grid grid-cols-[120px,1fr] gap-4"
                   >
-                    <div className="font-light">{screen}</div>
+                    <div className="font-light">Screen {screen}</div>
                     <div className="flex flex-wrap gap-4">
                       {times.map((item) => (
                         <Link
@@ -125,7 +129,7 @@ export default function MovieShowTime() {
                 ))}
               </div>
             </div>
-          ))}
+          )):<></>}
         </div>
       </div>
     </div>

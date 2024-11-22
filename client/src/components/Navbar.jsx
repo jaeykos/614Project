@@ -42,7 +42,7 @@ export default function Navbar() {
   }, [isLoggedIn, location.pathname]);
 
   return (
-    <nav className="bg-zinc-900  flex flex-row justify-between px-6 py-2 ">
+    <nav className="bg-zinc-900  flex flex-row justify-between px-6 py-2 z-50">
       <Link
         className="flex text-2xl xl:text-6xl font-bold  items-center py-5 px-2 text-zinc-200 hover:text-zinc-600 transition  ease-in-out"
         to="/"

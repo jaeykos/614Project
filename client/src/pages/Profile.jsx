@@ -6,7 +6,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate, Link } from "react-router-dom";
 import { Label } from "@/components/ui/label";
 
-import CancelTicketDialog from "@/components/cancel-ticket-dialogue";
 
 export default function Component() {
   const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -14,7 +13,7 @@ export default function Component() {
   const [newPassword, setNewPassword] = useState("");
   const [cardType, setCardType] = useState("credit");
   const [cardNumber, setCardNumber] = useState("");
-  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [selectedTicketIdToCancel, setSelectedTicketIdToCancel] = useState(null);
   const [tickets, setTickets] = useState([]);
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
   const [membershipStatus, setMembershipStatus] = useState("NON_PREMIUM");
@@ -25,7 +24,6 @@ export default function Component() {
   const [remainingCancelledCredits, setRemainingCancelledCredits] = useState(
     []
   );
-  const [currentCardNumber, setCurrentCardNumber] = useState("");
 
   // useLayoutEffect(() => {
   //   if (localStorage.getItem("token")) {
@@ -38,26 +36,66 @@ export default function Component() {
   const navigate = useNavigate();
   const handlePasswordChange = (e) => {
     e.preventDefault();
-    console.log("Changing password to:", newPassword);
-    setShowPasswordChange(false);
+    fetch("http://localhost:8080/user-password", {
+      method: "PATCH",
+      body: JSON.stringify({ password: newPassword }),
+      headers: {
+        "Content-Type": "application/json", // Content-Type is in quotes because it has a '-'
+        token: localStorage.getItem("token"),
+      }, 
+    })
+      .then((response) => {
+
+        alert("password changed successfully");
+      })
+      .catch((response) => {
+        alert("password change failed");
+      });
     setNewPassword("");
   };
 
   const handlePaymentUpdate = (e) => {
     e.preventDefault();
-    console.log("Updating payment method:", { cardType, cardNumber });
-    setShowPaymentUpdate(false);
-    setCardNumber("");
+    fetch("http://localhost:8080/payment-method", {
+      method: "PATCH",
+      body: JSON.stringify({ paymentMethod: cardType, cardNumber: cardNumber  }),
+      headers: {
+        "Content-Type": "application/json", // Content-Type is in quotes because it has a '-'
+        token: localStorage.getItem("token"),
+      }, 
+    })
+      .then((response) => {
+
+        alert("payment method changed successfully");
+      })
+      .catch((response) => {
+        alert("payment method change failed");
+      });
   };
 
   const handleCancelTicket = (ticketId) => {
-    setSelectedTicket(ticketId);
+    setSelectedTicketIdToCancel(ticketId);
     setIsDialogOpen(true);
-  };
+    const premiumStr = "You will receive a cancellation credit of full amount for future purchase \n up maximum of one-year expiration date"
+    const nonpremiumStr = "You will receive a cancellation credit of full amount minus 15% administration fee for future purchase up maximum of one-year expiration date If you become our premium member, there is no 15% administration fee, and you get other benefits too!"
+    var dispStr = null
+    membershipStatus === "PREMIUM"? dispStr = premiumStr: dispStr = nonpremiumStr;
 
-  const handleConfirmCancelTicket = () => {
-    //Implementation to handle ticket cancellation
-    console.log("Cancelling ticket:", selectedTicket);
+    if(confirm(dispStr)){
+      fetch(`http://localhost:8080/cancel-ticket/${selectedTicketIdToCancel}`, {
+        method: "PATCH",
+        headers: {
+          token: localStorage.getItem("token"),
+        }, 
+      })
+        .then((response) => {
+          alert("ticket cancelled successfully");
+          window.location.reload();
+        })
+        .catch((response) => {
+          alert("ticket not cancelled");
+        });
+    }
   };
 
   useEffect(() => {
@@ -193,14 +231,14 @@ export default function Component() {
             <div className="flex flex-col">
               <p>
                 Membership Status:{" "}
-                {membershipStatus === "PREIMUM" ? (
+                {membershipStatus === "PREMIUM" ? (
                   <>Premium</>
                 ) : (
                   <>Not Premium</>
                 )}
               </p>
 
-              {membershipStatus === "PREIMUM" ? (
+              {membershipStatus === "PREMIUM" ? (
                 <></>
               ) : (
                 <div className="border border-white text-md p-4 rounded mt-2">
@@ -226,7 +264,7 @@ export default function Component() {
               )}
             </div>
 
-            {membershipStatus === "PREIMUM" ? (
+            {membershipStatus === "PREMIUM" ? (
               <></>
             ) : (
               <Button
@@ -271,19 +309,19 @@ export default function Component() {
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem
-                      value="credit"
-                      id="credit"
+                      value="CREDIT"
+                      id="CREDIT"
                       className="border-white text-white"
                     />
-                    <Label htmlFor="credit">Credit</Label>
+                    <Label htmlFor="CREDIT">Credit</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem
-                      value="debit"
-                      id="debit"
+                      value="DEBIT"
+                      id="DEBIT"
                       className="border-white text-white"
                     />
-                    <Label htmlFor="debit">Debit</Label>
+                    <Label htmlFor="DEBIT">Debit</Label>
                   </div>
                 </RadioGroup>
               </div>
@@ -327,7 +365,7 @@ export default function Component() {
               </thead>
               <tbody>
                 {tickets.map((ticket) => (
-                  <tr key={ticket.id}>
+                  <tr key={ticket.ticketId}>
                     <td className="p-2 text-center">{ticket.ticketId}</td>
                     <td className="p-2 text-center">{ticket.movieName}</td>
                     <td className="p-2 text-center">
@@ -349,7 +387,7 @@ export default function Component() {
                     </td>
                     <td className="p-2">
                       <Button
-                        onClick={() => handleCancelTicket(ticket.id)}
+                        onClick={() => handleCancelTicket(ticket.ticketId)}
                         variant="outline"
                         className="border-white text-white hover:bg-white hover:text-black"
                       >
@@ -404,21 +442,6 @@ export default function Component() {
           </div>
         </div>
       </div>
-
-      {/* Cancel Ticket Dialog */}
-      <CancelTicketDialog
-        isOpen={isDialogOpen}
-        onClose={() => {
-          setIsDialogOpen(false);
-          setSelectedTicket(null);
-        }}
-        isPremium={membershipStatus === "PREIUM"}
-        onConfirm={() => {
-          handleConfirmCancelTicket();
-          setIsDialogOpen(false);
-          setSelectedTicket(null);
-        }}
-      />
     </div>
   );
 }

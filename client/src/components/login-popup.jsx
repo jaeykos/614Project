@@ -12,7 +12,36 @@ export default function LoginPopup() {
   const [error, setError] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
-  const { isUserPremium, setIsUserPremium } = useSharedState();
+  const {membershipStatus, setMembershipStatus} = useSharedState();
+
+
+  const getUserInfo = async() =>{
+    // if (localStorage.getItem("token")) {
+      console.log("calling fetch user info")
+      await fetch("http://localhost:8080/user", {
+        headers: {
+          token: localStorage.getItem("token"),
+        },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log("setting membership")
+          setMembershipStatus(data.membershipStatus)
+        })
+        .catch((error) => {
+          setError("Error fetching data");
+          setIsLoggedIn(false);
+          console.log(error);
+        });
+    // }
+    return {membershipStatus:"NON_PREMIUM"}
+  }
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -42,21 +71,22 @@ export default function LoginPopup() {
       .then((responsePayload) => {
         console.log("if resonse is 200");
         if (responseStatus === 200) {
-          console.log("response is 200");
+          console.log("login response is 200");
           console.log(responsePayload);
           localStorage.setItem("token", responsePayload);
-          setIsLoggedIn(true);
-          console.log(`isLoggedin: ${isLoggedIn}`);
 
+          getUserInfo();
+          setIsLoggedIn(true);
           setIsOpen(false);
         } else {
+          setIsLoggedIn(false);
           alert("Log in not successful");
         }
-      });
-    // .catch((err) => {
-    //   setIsLoggedIn(false);
-    //   console.log(err);
-    // });
+      })
+    .catch((err) => {
+      setIsLoggedIn(false);
+      console.log(err);
+    });
   };
 
   return (

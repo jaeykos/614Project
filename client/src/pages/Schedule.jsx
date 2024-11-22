@@ -6,11 +6,12 @@ import { useNavigate } from "react-router-dom";
 
 export default function Schedule() {
   const { scheduleId } = useParams();
-  const [seats, setSeats] = useState([]);
+  const [seatAvailabilities, setSeatAvailabilities] = useState([]);
   const [applyCredit, setApplyCredit] = useState(false);
   const [isPublic, setIsPublic] = useState(true);
   const [areNonPublicSeatsFilled, setAreNonPublicSeatsFilled] = useState(false);
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [selectedSeatId, setSelectedSeatId] = useState();
   const [isLoading, setIsLoading] = useState(true);
   const [movieName, setMovieName] = useState("");
   const [isMoviePublic, setIsMoviePublic] = useState(false);
@@ -18,6 +19,7 @@ export default function Schedule() {
   const [screenId, setScreenId] = useState();
   const [showtime, setShowtime] = useState("");
   const [totalRefundAmount, setTotalRefundAmount] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false); // New state for submission status
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export default function Schedule() {
 
     const fetchSchedule = async () => {
       try {
-        const response = await fetch(`/api/schedule/${scheduleId}`, {
+        const response = await fetch(`http://localhost:8080/schedule/${scheduleId}`, {
           headers: {
             token: localStorage.getItem("token"),
           },
@@ -33,13 +35,13 @@ export default function Schedule() {
         const data = await response.json();
         console.log("schedule");
         console.log(data);
-        setSeats(data.seats);
+        setSeatAvailabilities(data.seats);
         setMovieName(data.movieName);
         setPrice(data.price);
         setIsMoviePublic(data.isMoviePublic);
         setAreNonPublicSeatsFilled(data.areNonPublicSeatsFilled);
         setScreenId(data.screenId);
-        setShowtime(data.showtime);
+        setShowtime(data.startTime);
 
         setIsLoading(false);
       } catch (error) {
@@ -47,16 +49,16 @@ export default function Schedule() {
       }
     };
 
-    const getRemainingCancelledCredits = async () => {
+    const getTotalRemainingCancelledCredits = async () => {
       try {
-        const response = await fetch("/api/remaining-cancelled-credits", {
+        const response = await fetch("http://localhost:8080/remaining-credits", {
           headers: {
             token: localStorage.getItem("token"),
           },
         });
         const data = await response.json();
         setTotalRefundAmount(
-          data.remainingCancelledCredits.reduce(
+          data.reduce(
             (sum, credit) => sum + credit.refundAmount,
             0
           )
@@ -69,71 +71,51 @@ export default function Schedule() {
     };
 
     fetchSchedule();
-    getRemainingCancelledCredits();
+    getTotalRemainingCancelledCredits();
   }, [scheduleId]);
 
   const handleSeatToggle = (row, seatIndex) => {
-    const seatId = `${row}-${seatIndex}`;
+    const seatId = `${row*10}-${seatIndex+1}`;
     setSelectedSeats((prev) => (prev.includes(seatId) ? [] : [seatId]));
+    setSelectedSeatId(row*10 + seatIndex+1)
   };
 
-  const handleSubmit = (e) => {
+  const handleReserve = (e) => {
     e.preventDefault();
+    setIsSubmitting(true); // Set loading state to true when submitting
 
     const makeReservation = async () => {
       try {
-        const seatNumber =
-          selectedSeats[0].split("-")[0] * selectedSeats[0].split("-")[1];
-        console.log(seatNumber);
-        const response = await fetch("/api/reserve", {
+        console.log("selectedSeatId")
+        console.log(selectedSeatId)
+          const response = await fetch("http://localhost:8080/ticket", {
           method: "POST",
           headers: {
+            token: localStorage.getItem("token"),
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ scheduleId, seatNumber }),
+          body: JSON.stringify({ scheduleId:scheduleId, seatNumber: selectedSeatId }),
         });
-        const data = await response.json();
-        console.log("booking confirmation");
-        console.log(data);
-
-        setIsLoading(false);
-        navigate("/profile");
-
-        alert(
-          "Seats reserved successfully! We sent you a confirmation email for this purchase. Redirecting to your profile page where you can view reserved tickets."
-        );
+        if (response.status < 300){
+          console.log(response.status)
+          
+          alert(
+            "Seats reserved successfully! We sent you a confirmation email for this purchase.\nRedirecting to your profile page where you can view reserved tickets."
+          );
+          navigate("/profile");
+        }else{
+          console.log(response.status)
+          alert(
+            "Booking failed. Please try again later."
+          );
+        }
       } catch (error) {
         console.error("Error fetching showtimes:", error);
+      } finally {
+        setIsSubmitting(false); // Set loading state back to false after the request
       }
     };
     makeReservation();
-    // console.log(selectedSeats);
-
-    // const mockReserve = (seat) => {
-    //   return new Promise((resolve) => {
-    //     setTimeout(() => {
-    //       resolve({ success: true, seat });
-    //     }, 500);
-    //   });
-    // };
-
-    // Simulate reserving seats
-    // Promise.all(
-    //   selectedSeats.map((seat) => {
-    //     const [row, seatIndex] = seat.split("-");
-    //     return mockReserve({
-    //       row: parseInt(row),
-    //       seatIndex: parseInt(seatIndex),
-    //     });
-    //   })
-    // )
-    //   .then((results) => {
-    //     console.log("Reservation results:", results);
-    //     // Handle successful reservations
-    //     alert("Seats reserved successfully!");
-    //     setSelectedSeats([]); // Clear selected seats
-    //   })
-    //   .catch((error) => console.error("Error reserving seats:", error));
   };
 
   if (!isPublic && !areNonPublicSeatsFilled) {
@@ -145,12 +127,15 @@ export default function Schedule() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-8">
+    <div className="min-h-screen bg-black text-white p-8 z-0">
       {/* Movie and Screen Info */}
       <div className="text-center mb-12">
         <h1 className="text-2xl font-light mb-2">{movieName}</h1>
         <p className="text-lg font-light">
-          Screen {screenId} at {showtime}
+          Screen {screenId} at {new Date(showtime).toLocaleString('default', { month: 'short' }) + ' ' 
++ new Date(showtime).getDate() + ', ' + new Date(showtime).getFullYear() + ' - '
+ + new Date(showtime).getHours().toString().padStart(2, '0') + ':' 
+ + new Date(showtime).getMinutes().toString().padStart(2, '0')}
         </p>
       </div>
 
@@ -166,24 +151,24 @@ export default function Schedule() {
             {isLoading ? (
               <div className="text-center">Loading seats...</div>
             ) : (
-              seats.length > 0 && (
+              seatAvailabilities.length > 0 && (
                 <div className="space-y-2">
-                  {seats.map((row, rowIndex) => (
+                  {seatAvailabilities.map((row, rowIndex) => (
                     <div key={rowIndex} className="flex items-center gap-4">
                       <div className="flex gap-2">
-                        {row.map((isOccupied, seatIndex) => (
+                        {row.map((isAvailable, seatIndex) => (
                           <button
                             key={seatIndex}
                             onClick={() =>
-                              !isOccupied &&
-                              handleSeatToggle(rowIndex + 1, seatIndex + 1)
+                              isAvailable &&
+                              handleSeatToggle(rowIndex, seatIndex)
                             }
-                            disabled={isOccupied}
+                            disabled={!isAvailable}
                             className={`w-10 h-10 border rounded-sm flex items-center justify-center transition-colors ${
-                              isOccupied
+                              !isAvailable
                                 ? "bg-gray-500 cursor-not-allowed"
                                 : selectedSeats.includes(
-                                    `${rowIndex + 1}-${seatIndex + 1}`
+                                    `${rowIndex *10}-${seatIndex + 1}`
                                   )
                                 ? "bg-white text-black"
                                 : "border-white hover:bg-white/10"
@@ -198,7 +183,7 @@ export default function Schedule() {
                 </div>
               )
             )}
-            {!isLoading && seats.length === 0 && (
+            {!isLoading && seatAvailabilities.length === 0 && (
               <div className="text-center">No seats available</div>
             )}
           </div>
@@ -207,7 +192,7 @@ export default function Schedule() {
         {/* Payment Information */}
         <div className="space-y-8">
           <h2 className="text-xl font-light mb-4">Payment Information</h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleReserve} className="space-y-6">
             <div className="space-y-4">
               <p className="text-sm">
                 You have ${totalRefundAmount} of remaining cancelled credit
@@ -244,10 +229,10 @@ export default function Schedule() {
 
             <Button
               type="submit"
-              disabled={selectedSeats.length === 0}
+              disabled={selectedSeats.length === 0 || isSubmitting} // Disable button if no seats are selected or while submitting
               className="w-full bg-transparent border border-white hover:bg-white text-zinc-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Submit
+              {isSubmitting ? "Booking..." : "Submit"} {/* Change button text based on loading state */}
             </Button>
           </form>
         </div>

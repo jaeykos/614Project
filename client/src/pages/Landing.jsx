@@ -11,19 +11,10 @@ import {
   CarouselNext,
 } from "@/components/ui/carousel";
 
-// Sample movie data
-// const movies = [
-//   { id: 1, title: "The Dark Knight", image: "/vite.svg" },
-//   { id: 2, title: "Inception", image: "/vite.svg" },
-//   { id: 3, title: "Interstellar", image: "/vite.svg" },
-//   { id: 4, title: "The Matrix", image: "/vite.svg" },
-//   { id: 5, title: "Pulp Fiction", image: "/vite.svg" },
-//   { id: 6, title: "Fight Club", image: "/vite.svg" },
-// ];
 
 const Landing = () => {
   const [searchQuery, setSearchQuery] = useState("");
-
+  const {membershipStatus, setMembershipStatus} = useSharedState();
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
   const [publicMovies, setPublicMovies] = useState([]);
   const [nonPublicMovies, setNonPublicMovies] = useState([]);
@@ -60,15 +51,46 @@ const Landing = () => {
       return [];
     }
   };
-  const getMovies = async () => {
+
+  const getUserInfo = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      console.log("Token exists:", token);
+      console.log("calling fetch user info");
+      try {
+        const response = await fetch("http://localhost:8080/user", {
+          headers: { token: token },
+        });
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        console.log("setting membership");
+        console.log(data);
+        return data;
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+        setError("Error fetching data");
+        setIsLoggedIn(false);
+      }
+    } else {
+      console.log("No token found in localStorage");
+    }
+    return { membershipStatus: "NON_PREMIUM" };
+  };
+  
+
+  const getMovies = async (userData) => {
+    
     let movies = [];
-    if (localStorage.getItem("token")) {
-      console.log("token retrieved");
+    console.log(userData)
+    if (userData.membershipStatus === "PREMIUM") {
+      console.log("User is premium");
       const publicMovies = await getPublicMovies();
       const nonPublicMovies = await getNonPublicMovies();
       movies = [...nonPublicMovies, ...publicMovies];
     } else {
-      console.log("token not retrieved");
+      console.log("User is not logged in or not  premium");
       const publicMovies = await getPublicMovies();
       movies = publicMovies;
     }
@@ -77,10 +99,13 @@ const Landing = () => {
 
   useEffect(() => {
     const fetchAndSetMovies = async () => {
-      const moviesData = await getMovies();
+      const userData = await getUserInfo();
+      const moviesData = await getMovies(userData);
+
       setMovies(moviesData);
       console.log("all movies:", moviesData);
     };
+
     fetchAndSetMovies();
   }, [isLoggedIn]);
 
