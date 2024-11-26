@@ -131,11 +131,7 @@ export default function LoginPopup() {
             Log In
           </Button>
         </form>
-        <div className="mt-4 text-center">
-          <Button variant="link" className="text-sm">
-            Don't have an account? Sign up
-          </Button>
-        </div>
+     
       </DialogContent>
     </Dialog>
   );

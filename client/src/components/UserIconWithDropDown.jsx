@@ -15,6 +15,7 @@ import { useSharedState } from "../MyContext";
 export default function UserIconDropdown({ email, membershipStatus }) {
   const { setIsLoggedIn } = useSharedState();
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const firstInitial = email.charAt(0).toUpperCase();
 
@@ -22,10 +23,9 @@ export default function UserIconDropdown({ email, membershipStatus }) {
     console.log("logout clicked");
     localStorage.removeItem("token");
     setIsLoggedIn(false);
-    window.location.reload(true);
+    navigate("/");
   };
 
-  const navigate = useNavigate();
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>

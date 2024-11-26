@@ -12,70 +12,90 @@ import { Link } from "react-router-dom";
 export default function MovieShowTime() {
   const { movieId } = useParams();
   const [movieName, setMovieName] = useState("");
+  const [moviePosterURL, setMoviePosterURL] = useState("");
   const [isMoviePublic, setIsMoviePublic] = useState("");
-  const [showTimes, setShowTimes] = useState(null);
+  const [futureShowTimes, setFutureShowTimes] = useState(null);
   const [selectedDate, setSelectedDate] = useState("all");
   const [filteredShowtimes, setFilteredShowtimes] = useState({});
 
   useEffect(() => {
-    if (showTimes) {
+    if (futureShowTimes) {
       setFilteredShowtimes(
         selectedDate === "all"
-          ? showTimes
-          : { [selectedDate]: showTimes[selectedDate] }
+          ? futureShowTimes
+          : { [selectedDate]: futureShowTimes[selectedDate] }
       );
     }
-  }, [selectedDate, showTimes]);
+  }, [selectedDate, futureShowTimes]);
+
+
 
   useEffect(() => {
-    const fetchShowtimes = async () => {
-      if (!movieId) return; // Add this line to ensure movieId is not null
-      console.log(`http://localhost:8080/showtimes/${movieId}`);
+    const fetchFutureShowtimes = async () => {
+      
       try {
-        const response = await fetch(`http://localhost:8080/showtimes/${movieId}`, {
-          headers: {
-            token: localStorage.getItem("token"),
-          },
-        });
-        const data = await response.json();
-        console.log("showtimes");
-        console.log(data);
-        setShowTimes(data);
+          const response = await fetch(`http://localhost:8080/showtimes/${movieId}`, {
+          });
+          const data = await response.json();
+          console.log("showtimes");
+          console.log(data);
+          
+          // Filter data for future showtimes
+          const filteredData = {};
+          const now = new Date();
+
+          Object.keys(data).forEach(date => {
+              const showtimesByDate = data[date];
+              Object.keys(showtimesByDate).forEach(schedule => {
+                  const filteredShowtimes = showtimesByDate[schedule].filter(showtime => {
+                      const showtimeDate = new Date(`${date} ${showtime.time}`);
+                      return showtimeDate > now;
+                  });
+
+                  if (filteredShowtimes.length > 0) {
+                      if (!filteredData[date]) {
+                          filteredData[date] = {};
+                      }
+                      filteredData[date][schedule] = filteredShowtimes;
+                  }
+              });
+          });
+
+          setFutureShowTimes(filteredData);
       } catch (error) {
-        console.error("Error fetching showtimes:", error);
+          console.error("Error fetching showtimes:", error);
       }
-    };
+  };
 
 
     const getMovie = async () => {
       try {
         const response = await fetch(`http://localhost:8080/movie/${movieId}`, {
-          headers: {
-            token: localStorage.getItem("token"),
-          },
         });
         const data = await response.json();
         console.log(data);
         setMovieName(data.movieName);
         setIsMoviePublic(data.isMoviePublic);
+        setMoviePosterURL(data.url)
+
+
       } catch (error) {
         console.error("Error fetching movie data:", error);
       }
     };
 
     getMovie();
-    fetchShowtimes();
+    fetchFutureShowtimes();
   }, [movieId]);
 
   return (
-
-    <div className="bg-black text-white p-8">
+    <div className="bg-black text-white p-8 z-0">
       <div className="grid md:grid-cols-[400px,1fr] gap-8 max-w-6xl mx-auto sticky">
         <div className="space-y-4">
           <h1 className="text-2xl font-bold">{movieName}</h1>
           <div className="aspect-[2/3] h-3/5 relative border border-white hidden md:flex">
             <img
-              src="/placeholder.svg"
+              src={moviePosterURL}
               alt={`${movieName} Poster`}
               className="w-full h-full object-cover"
             />
@@ -93,8 +113,8 @@ export default function MovieShowTime() {
               <SelectContent>
                 {" "}
                 <SelectItem value="all">All</SelectItem>{" "}
-                {showTimes &&
-                  Object.keys(showTimes).map((date) => (
+                {futureShowTimes &&
+                  Object.keys(futureShowTimes).map((date) => (
                     <SelectItem key={date} value={date}>
                       {" "}
                       {date}{" "}

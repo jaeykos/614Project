@@ -22,7 +22,7 @@ function App() {
 
   return (
     <div className="AppWrapper  w-full flex flex-col flex-1 ">
-      <div className="sticky top-0">
+      <div className="sticky top-0 z-30">
         <Navbar />
       </div>
       <div className="RouteWrapper bg-zinc-950 flex flex-col w-full mr-0 flex-1 ">

@@ -13,7 +13,6 @@ export default function Component() {
   const [newPassword, setNewPassword] = useState("");
   const [cardType, setCardType] = useState("credit");
   const [cardNumber, setCardNumber] = useState("");
-  const [selectedTicketIdToCancel, setSelectedTicketIdToCancel] = useState(null);
   const [tickets, setTickets] = useState([]);
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
   const [membershipStatus, setMembershipStatus] = useState("NON_PREMIUM");
@@ -34,6 +33,24 @@ export default function Component() {
   // }, []);
 
   const navigate = useNavigate();
+
+  const upgradeToPremium = () =>{
+    fetch("http://localhost:8080/buy-premium", {
+      method: "PATCH",
+      headers: {
+        token: localStorage.getItem("token"),
+      }, 
+    })
+      .then((response) => {
+
+        alert("Congratulations! You are now our premium member!");
+        setMembershipStatus("PREMIUM")
+      })
+      .catch((response) => {
+        alert("Membership upgrade failed. Please try again later");
+      });
+  }
+
   const handlePasswordChange = (e) => {
     e.preventDefault();
     fetch("http://localhost:8080/user-password", {
@@ -74,7 +91,7 @@ export default function Component() {
   };
 
   const handleCancelTicket = (ticketId) => {
-    setSelectedTicketIdToCancel(ticketId);
+    console.log(ticketId)
     setIsDialogOpen(true);
     const premiumStr = "You will receive a cancellation credit of full amount for future purchase \n up maximum of one-year expiration date"
     const nonpremiumStr = "You will receive a cancellation credit of full amount minus 15% administration fee for future purchase up maximum of one-year expiration date If you become our premium member, there is no 15% administration fee, and you get other benefits too!"
@@ -82,7 +99,7 @@ export default function Component() {
     membershipStatus === "PREMIUM"? dispStr = premiumStr: dispStr = nonpremiumStr;
 
     if(confirm(dispStr)){
-      fetch(`http://localhost:8080/cancel-ticket/${selectedTicketIdToCancel}`, {
+      fetch(`http://localhost:8080/cancel-ticket/${ticketId}`, {
         method: "PATCH",
         headers: {
           token: localStorage.getItem("token"),
@@ -133,7 +150,7 @@ export default function Component() {
       setCardType(data.paymentMethod);
       setCardNumber(data.cardNumber);
       setMembershipStatus(data.membershipStatus);
-      setMembershipExpiryDate(data.setMembershipExpiryDate);
+      setMembershipExpiryDate(data.membershipExpiryDate);
 
       console.log(data);
     } catch (error) {
@@ -237,6 +254,10 @@ export default function Component() {
                   <>Not Premium</>
                 )}
               </p>
+              {membershipStatus === "PREMIUM" ?<p className="text-xs">
+                (Expiry Date: {`${new Date(membershipExpiryDate).toISOString().split('T')[0]}`})</p>
+                 :<></>}
+              
 
               {membershipStatus === "PREMIUM" ? (
                 <></>
@@ -270,6 +291,7 @@ export default function Component() {
               <Button
                 variant="outline"
                 className="border-white text-white hover:bg-white hover:text-black mt-4"
+                onClick={() => upgradeToPremium()}
               >
                 Upgrade to Premium Membership
               </Button>
@@ -351,7 +373,7 @@ export default function Component() {
           <h2 className="text-xl font-light">
             Reserved Tickets for Upcoming Movies
           </h2>
-          <div className="overflow-x-auto">
+          {tickets.length?<div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="text-left">
@@ -398,13 +420,14 @@ export default function Component() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </div>:<p className="text-sm font-thin">There is no upcoming reserved tickets.</p>}
+          
         </div>
 
         {/* Cancelled Credit Section */}
         <div className="space-y-4 pb-10">
           <h2 className="text-xl font-light">Remaining Cancelled Credit</h2>
-          <div className="max-w-xs">
+          {remainingCancelledCredits.length?<div className="max-w-xs">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white">
@@ -439,7 +462,8 @@ export default function Component() {
                 </tr>
               </tbody>
             </table>
-          </div>
+          </div>:<p className="text-sm font-thin">You do not have any remaining cancelled credit.</p>}
+          
         </div>
       </div>
     </div>

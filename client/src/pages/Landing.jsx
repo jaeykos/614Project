@@ -111,8 +111,8 @@ const Landing = () => {
 
   return (
     <>
-      <main className="flex flex-col container mx-auto h-full px-4 py-8 space-y-8 items-center justify-start self-center justify-self-center">
-        <div className="flex flex-row w-full justify-center ">
+      <main className="flex flex-col container mx-auto h-full px-4 py-8 space-y-8 items-center justify-start self-center justify-self-center z-0">
+        <div className="flex flex-row w-full justify-center z-0 ">
           <Input
             type="text"
             placeholder="Search for now playing and upcoming movies here"
@@ -128,13 +128,13 @@ const Landing = () => {
           </Button> */}
         </div>
 
-        <div className="space-y-4 w-8/12  items-center ">
-          <h1 className="xl:text-4xl font-bold text-center">
+        <div className="space-y-4 w-8/12  items-center z-0 ">
+          <h1 className="xl:text-4xl font-bold text-center z-0">
             Now playing & upcoming movies at Theater X
           </h1>
 
           <Carousel
-            className="mx-auto "
+            className="mx-auto z-0 "
             opts={{ align: "start", slidesToScroll: 1, slidesToShow: 3 }}
           >
             <CarouselContent>
@@ -143,7 +143,7 @@ const Landing = () => {
                   <Link to={`/movie/${encodeURIComponent(movie.movieId)}`}>
                     <div className="p-1">
                       <div className="space-y-2">
-                        <div className="aspect-[3/4] relative border border-white">
+                        <div className="aspect-[3/4] relative border border-zinc-500">
                           <img
                             src={movie.url}
                             alt={movie.movieName}

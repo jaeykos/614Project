@@ -27,7 +27,6 @@ export default function SignUpForm() {
   const [error, setError] = useState("");
   const [passwordAgain, setPasswordAgain] = useState("");
   const [isPasswordValid, setIsPasswordValid] = useState("");
-  const [isConsentChecked, setIsConsentChecked] = useState("");
   const [invalidPasswordMessages, setInvalidPasswordMessages] = useState([]);
   const { isLoggedIn, setIsLoggedIn } = useSharedState();
   const navigate = useNavigate();
@@ -41,7 +40,7 @@ export default function SignUpForm() {
     e.preventDefault();
     setError("");
 
-    if (!email || !password) {
+    if (!email || !password || !cardNumber) {
       alert("Please fill in all fields.");
       return;
     }
@@ -54,28 +53,27 @@ export default function SignUpForm() {
       return;
     }
 
-    if (!isConsentChecked) {
-      alert("Please consent to the agreeemnt to sign up.");
-      return;
-    }
-
-    fetch("/api/register", {
+    fetch("http://localhost:8080/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email: email, password: password }),
+      body: JSON.stringify({ email: email, password: password, paymentMethod: cardType, cardNumber:cardNumber }),
     })
       .then(async (response) => {
+        // console.log('response')
+        // console.log(response)
+
         if (!response.ok) {
           const errorData = await response.json();
           alert(errorData.error);
           return;
         }
-        return response.json();
+        
+        return response.text();
       })
-      .then((responsePayload) => {
-        localStorage.setItem("token", responsePayload.token);
+      .then((tokenString) => {
+        localStorage.setItem("token", tokenString);
         setIsLoggedIn(true);
         alert("Sign up success!");
         navigate("/");
@@ -170,21 +168,21 @@ export default function SignUpForm() {
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem
-                    value="credit"
-                    id="credit"
+                    value="CREDIT"
+                    id="CREDIT"
                     className="border-white text-white"
                   />
-                  <Label htmlFor="credit" className="text-white font-light">
+                  <Label htmlFor="CREDIT" className="text-white font-light">
                     Credit
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem
-                    value="debit"
-                    id="debit"
+                    value="DEBIT"
+                    id="DEBIT"
                     className="border-white text-white"
                   />
-                  <Label htmlFor="debit" className="text-white font-light">
+                  <Label htmlFor="DEBIT" className="text-white font-light">
                     Debit
                   </Label>
                 </div>

@@ -27,11 +27,7 @@ export default function Schedule() {
 
     const fetchSchedule = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/schedule/${scheduleId}`, {
-          headers: {
-            token: localStorage.getItem("token"),
-          },
-        });
+        const response = await fetch(`http://localhost:8080/schedule/${scheduleId}`);
         const data = await response.json();
         console.log("schedule");
         console.log(data);
@@ -83,7 +79,8 @@ export default function Schedule() {
   const handleReserve = (e) => {
     e.preventDefault();
     setIsSubmitting(true); // Set loading state to true when submitting
-
+    
+     
     const makeReservation = async () => {
       try {
         console.log("selectedSeatId")
@@ -106,10 +103,11 @@ export default function Schedule() {
         }else{
           console.log(response.status)
           alert(
-            "Booking failed. Please try again later."
+            (await response.json()).message
           );
         }
       } catch (error) {
+
         console.error("Error fetching showtimes:", error);
       } finally {
         setIsSubmitting(false); // Set loading state back to false after the request
@@ -188,8 +186,7 @@ export default function Schedule() {
             )}
           </div>
         </div>
-
-        {/* Payment Information */}
+        {localStorage.getItem("token")?
         <div className="space-y-8">
           <h2 className="text-xl font-light mb-4">Payment Information</h2>
           <form onSubmit={handleReserve} className="space-y-6">
@@ -235,7 +232,7 @@ export default function Schedule() {
               {isSubmitting ? "Booking..." : "Submit"} {/* Change button text based on loading state */}
             </Button>
           </form>
-        </div>
+        </div>:<>You need to log in to make a booking. Please log in or sign in to make a booking.</>}
       </div>
     </div>
   );
