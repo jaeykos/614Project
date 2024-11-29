@@ -45,6 +45,8 @@ export default function Component() {
 
         alert("Congratulations! You are now our premium member!");
         setMembershipStatus("PREMIUM")
+        window.location.reload();
+
       })
       .catch((response) => {
         alert("Membership upgrade failed. Please try again later");
